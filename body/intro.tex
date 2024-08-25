@@ -30,7 +30,7 @@
 在判断某个元素是否属于集合 $S$ 时，只需要计算该元素对应的 $k$ 个位置，然后检查这 $k$ 个位置上的比特是否都为 $1$。
 只要有一个位置上出现了 $0$，那么判断结果就是不属于；否则，布隆过滤器认为该元素属于集合 $S$。
 
-从布隆过滤器的构造和判断算法中可以看出，如果一个元素属于集合 $S$，那么判断结果一定是正确的；但是如果一个元素不属于集合 $S$ （False的情况），布隆过滤器也有可能会认为该元素属于 $S$（输出结果为Positive），此时判断错误的概率也称为误判率（False Positive Rate）。
+从布隆过滤器的构造和判断算法中可以看出，如果一个元素属于集合 $S$，那么判断结果一定是正确的；但是如果一个元素不属于集合 $S$ （False的情况），布隆过滤器也有可能会认为该元素属于 $S$（输出结果为Positive），此时判断错误的概率也称为假阳性率（False Positive Rate）。
 尽管布隆过滤器存在误判的问题，但在实际应用场景中，只要将误判率控制在较小的值，一般认为以一定的误判换取低空间开销和高效判断是值得的。
 
 布隆过滤器的误判率 $f_r$ 由布隆过滤器的长度 $m$，使用的哈希函数个数 $k$ 和集合中的元素个数 $n$ 所决定。
@@ -70,6 +70,33 @@
 
 \section{分类}
 
+在介绍布隆过滤器相关衍生的数据结构之前，我们首先需要对这些数据结构进行分类。
+对此，我们对这些数据结构进行了如下统一的定义。
+
+\begin{definition}
+    令 $\mathcal{U}$ 表示元素的集合，$\mathcal{H}$ 为哈希函数的集合。过滤器一般包含以下两个算法：
+    % 的插入和查询算法如下所示。
+    \begin{itemize}
+    \item[$\circ$] $\mathsf{Construct}(S, \mathcal{H}) \to F/\perp$：输入集合 $S \subseteq \mathcal{U}$ 和预先给定的哈希函数集合 $\mathcal{H}$，输出构造的过滤器 $F$（或者以可忽略的概率输出错误指示符 $\perp$）。
+    \item[$\circ$] $\mathsf{Evaluate}(x, \mathcal{H}, F) \to \mathsf{True} / \mathsf{False} $：输入元素 $x$，预先给定的哈希函数集合 $\mathcal{H}$，输出结果 $\mathsf{True}$ 或者 $\mathsf{False}$。
+    \end{itemize}
+    % 对于一个数据结构
+\end{definition}
+
+\textbf{正确性：} 对于任意的 $S \subseteq \mathcal{U}$，都有：1）构建过程中，输出 $\perp$ 的概率是可忽略的；2）如果 $F \gets \mathsf{Construct}(S, \mathcal{H})$，且 $F \neq \perp$，那么在判断过程中，对于任意的 $x \in S$，$\Pr[\mathsf{Evaluate}(x, \mathcal{H}, F) = \mathsf{True}] = 1$；对于任意 $x' \notin S$，$\Pr[\mathsf{Evaluate}(x, \mathcal{H}, F) = \mathsf{True}]$ 为可忽略的。
+
+从以上定义中可以看出，如果一个元素在原本输入的集合中，那么过滤器在判断过程中一定能返回正确的结果，即过滤器中不存在假阴性的情况；反之，如果一个元素不存在于输入的集合中，过滤器会大概率返回正确的结果，即过滤器中会存在一定的假阳性率。
+
+在判断过程中，需要使用 $\mathcal{H}$ 中的哈希函数计算出元素在 $F$ 中对应的位置，再对这些位置上记录的结果进行计算，最后根据计算结果与事先定义的 $f(x)$ 进行比较返回 $\mathsf{Ture}$ 或者 $\mathsf{False}$。
+计算过程也被称为探测（probing），文献~\cite{dillinger2021ribbon}将探测方式分为以下四种类型：
+
+\begin{itemize}
+    \item AND型：在通过哈希函数计算出的位置中，如果所有位置上结果都与 $f(x)$ 相等，那么就输出 $\mathsf{True}$；
+    \item OR型：在通过哈希函数计算出的位置中，如果至少有一个位置上的值与 $f(x)$ 相等，那么就输出 $\mathsf{True}$，否则输出 $\mathsf{False}$。
+    该类型的过滤器典型代表是布谷鸟过滤器~\cite{fan2014cuckoo}，这种构造可以方便
+    \item XOR 型：在通过
+\end{itemize}
+
+% 从以上定义中可以看出，
+
 这里引用文献~\cite{2024YinSiJiHeYunSuanZhongDeGuanJianShuJuJieGouYanJiu}
-
-
