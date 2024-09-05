@@ -88,15 +88,28 @@
 从以上定义中可以看出，如果一个元素在原本输入的集合中，那么过滤器在判断过程中一定能返回正确的结果，即过滤器中不存在假阴性的情况；反之，如果一个元素不存在于输入的集合中，过滤器会大概率返回正确的结果，即过滤器中会存在一定的假阳性率。
 
 在判断过程中，需要使用 $\mathcal{H}$ 中的哈希函数计算出元素在 $F$ 中对应的位置，再对这些位置上记录的结果进行计算，最后根据计算结果与事先定义的 $f(x)$ 进行比较返回 $\mathsf{Ture}$ 或者 $\mathsf{False}$。
-计算过程也被称为探测（probing），文献~\cite{dillinger2021ribbon}将探测方式分为以下四种类型：
-
+计算过程也被称为探测（probing），文献~\cite{dillinger2021ribbon}将探测方式分为以下三种类型：
 \begin{itemize}
     \item AND型：在通过哈希函数计算出的位置中，如果所有位置上结果都与 $f(x)$ 相等，那么就输出 $\mathsf{True}$；
     \item OR型：在通过哈希函数计算出的位置中，如果至少有一个位置上的值与 $f(x)$ 相等，那么就输出 $\mathsf{True}$，否则输出 $\mathsf{False}$。
-    该类型的过滤器典型代表是布谷鸟过滤器~\cite{fan2014cuckoo}，这种构造可以方便
-    \item XOR 型：在通过
+    % 该类型的过滤器典型代表是布谷鸟过滤器~\cite{fan2014cuckoo}，这种构造可以方便
+    \item XOR 型：在通过哈希函数计算出的位置中，如果所有位置上的值的异或结果与 $f(x)$ 相等，那么就输出 $\mathsf{True}$，否则输出 $\mathsf{False}$。
 \end{itemize}
+从以上分类可以看出，布隆过滤器的判断方式属于AND型。
+% AND型的典型代表是布隆过滤器，
+OR型的典型代表是布谷鸟过滤器（Cuckoo filter），这种构造的特点是支持元素的动态插入和删除。
+XOR型的典型代表是异或过滤器（Xor filter），这类过滤器在结构上非常紧凑，具有较高的存储空间利用率，但受限于构建方式，这类构造通常不能支持元素的动态更新。
 
 % 从以上定义中可以看出，
+% 这里引用文献~\cite{2024YinSiJiHeYunSuanZhongDeGuanJianShuJuJieGouYanJiu}
 
-这里引用文献~\cite{2024YinSiJiHeYunSuanZhongDeGuanJianShuJuJieGouYanJiu}
+不同的过滤器中对 $f(x)$ 的定义也略有不同。
+一般来说分为以下几种情况：
+\begin{itemize}
+    \item $f(x)$ 为比特 $1$，最典型的是布隆过滤器，即要求 $x$ 对应所有位置上的结果都为 $1$，过滤器才会返回 $\mathsf{True}$。
+    % ，最典型的是布隆过滤器，即只有当通过哈希计算出的所有位置上都为 $1$，那么返回 $\mathsf{True}$。
+    \item $f(x)$ 等于元素 $x$ 本身，典型的是混淆布隆过滤器 （garbled Bloom filter），它采用秘密共享的方式将 $x$ 的多个
+    \item $f(x)$ 为 $x$ 的指纹（fingerprint）。指纹可以是
+    \item $f(x)$
+\end{itemize}
+
