@@ -102,14 +102,54 @@ XOR型的典型代表是异或过滤器（Xor filter），这类过滤器在结�
 
 % 从以上定义中可以看出，
 % 这里引用文献~\cite{2024YinSiJiHeYunSuanZhongDeGuanJianShuJuJieGouYanJiu}
-
 不同的过滤器中对 $f(x)$ 的定义也略有不同。
 一般来说分为以下几种情况：
 \begin{itemize}
     \item $f(x)$ 为比特 $1$，最典型的是布隆过滤器，即要求 $x$ 对应所有位置上的结果都为 $1$，过滤器才会返回 $\mathsf{True}$。
     % ，最典型的是布隆过滤器，即只有当通过哈希计算出的所有位置上都为 $1$，那么返回 $\mathsf{True}$。
-    \item $f(x)$ 等于元素 $x$ 本身，典型的是混淆布隆过滤器 （garbled Bloom filter），它采用秘密共享的方式将 $x$ 的多个
-    \item $f(x)$ 为 $x$ 的指纹（fingerprint）。指纹可以是
-    \item $f(x)$
+    \item $f(x)$ 等于元素 $x$ 本身，典型的是混淆布隆过滤器 （garbled Bloom filter），即计算的结果为 $x$，过滤器才会返回 $\mathsf{True}$。
+    \item $f(x)$ 为 $x$ 的指纹（fingerprint），一般指的是 $x$ 的哈希值，典型代表为布谷鸟过滤器，即当有一个位置上的值与 $x$ 的指纹相同，过滤器才会返回 $\mathsf{True}$。
+    \item $f(x)$ 为任意函数，典型的是 Bloomier 过滤器，也就是说 $f(x)$ 的形式并不重要，或者说只要满足是 $x$ 一种映射关系即可。
 \end{itemize}
 
+从上述分类可以看出，对 $f(x)$ 的定义可以是简单的比特 $1$，也可以是关于 $x$ 的任意一种映射关系。
+从另一个角度来看，键值型数据也可以看作是从键到值的映射，这样一来，键值型数据也可以编码成过滤器的形式。
+利用这种思路构造的结构称作不经意的键值存储（Oblivious Key-Value Store, OKVS），与过滤器不同，OKVS 返回的不是 $\mathsf{True}$ 或者 $\mathsf{False}$，而是与输入对应的数值。
+OKVS 的定义如下：
+
+\begin{definition}
+    令 $\mathcal{K}$ 和 $\mathcal{V}$ 分别表示键和值的集合。OKVS 包含两个算法：
+    \begin{itemize}
+        \item[$\circ$] $\mathsf{Encode}(\{(k_1, v_1), (k_2, v_2), \dots, (k_n, v_n)\})$：输入一组键值对 $\{(k_i, v_i)\}_{i\in [n]}\subseteq \mathcal{K} \times \mathcal{V}$，输出 OKVS 的编码结果 $D$ 或以可忽略的概率输出错误指示符 $\perp$。
+        \item[$\circ$] $\mathsf{Decode}(D, k)$：输入 OKVS 的编码结果 $D$ 和键 $k\in \mathcal{K}$，输出值 $v\in \mathcal{V}$。
+    \end{itemize}
+
+    \textbf{正确性：} 对于任意键值对集合 $A\subseteq \mathcal{K}\times \mathcal{V}$，如果 $\mathsf{Encode}(A) = D$ 且 $D\neq \perp$，那么对于任意的 $(k, v) \in A$，都有 $\mathsf{Decode}(D, k) = v$。
+
+    \textbf{不经意性：} 随机给定两个不同的集合 $\mathcal{K}_0 = \{k_1^0, k_2^0, \dots, k_n^0\}$ 和 $\mathcal{K}_1 = \{k_1^1, k_2^1, \dots, k_n^1\}$，再随机构造集合 $\{v_i\}_{i\in [n]}\gets \mathcal{V}$，若 $D \neq \perp$，则分布 $\{D | v_i \gets \mathcal{V}, i\in [n], \mathsf{Encode}(\{(k_1^0, v_1), (k_2^0, v_2), \dots, (k_n^0, v_n)\})\}$ 与分布 $\{D | v_i \gets \mathcal{V}, i\in [n], \mathsf{Encode}(\{(k_1^1, v_1), (k_2^1, v_2), \dots, (k_n^1, v_n)\})\}$ 统计不可区分。
+
+    对于部分安全需求较高的协议，OKVS 还需要额外满足随机性的性质，其定义如下。
+
+    \textbf{随机性：} 对于任意的集合 $A = \{(k_i, v_i)\}_{i\in [n]} \subseteq \mathcal{K} \times \mathcal{V}$ 和 $k' \notin \{k_1, k_2, \dots, k_n\}$，如果 $\mathsf{Encode}(A) = D$ 且 $D\neq \perp$，则 $\mathsf{Decode}(D, k')$ 的输出与随机选择的 $v\gets \mathcal{V}$ 统计不可区分。
+\end{definition}
+
+根据上述讨论内容，表~\ref{tab:construct}对这些过滤器以及OKVS结构进行了总结，接下来我们将对这些结构进行详细介绍。
+
+\begin{table}
+  \centering
+  \caption{不同过滤器及相关结构总结}
+  \label{tab:construct}
+  \begin{tabular}{ccc}
+    \toprule
+    名称  &  探测类型  &  $f(x)$  \\
+    \midrule
+    布隆过滤器  &  AND型  &  $1$  \\
+    布谷鸟过滤器  &  OR型  &  $x$ 的指纹值  \\
+    异或过滤器  &  XOR型  &  $x$ 的指纹值  \\
+    Binary Fuse 过滤器  & XOR型  &  $x$ 的指纹值  \\
+    Bloomier 过滤器  &  XOR型  &  $f(x)$  \\
+    混淆布隆过滤器  &  XOR型  &  $x$  \\
+    Random-Band OKVS &  XOR型  &  $x$ 对应的值  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
