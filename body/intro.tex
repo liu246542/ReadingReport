@@ -117,7 +117,7 @@ XOR型的典型代表是异或过滤器（Xor filter），这类过滤器在结�
 利用这种思路构造的结构称作不经意的键值存储（Oblivious Key-Value Store, OKVS），与过滤器不同，OKVS 返回的不是 $\mathsf{True}$ 或者 $\mathsf{False}$，而是与输入对应的数值。
 OKVS 的定义如下：
 
-\begin{definition}
+\begin{definition}\label{def:okvs}
     令 $\mathcal{K}$ 和 $\mathcal{V}$ 分别表示键和值的集合。OKVS 包含两个算法：
     \begin{itemize}
         \item[$\circ$] $\mathsf{Encode}(\{(k_1, v_1), (k_2, v_2), \dots, (k_n, v_n)\})$：输入一组键值对 $\{(k_i, v_i)\}_{i\in [n]}\subseteq \mathcal{K} \times \mathcal{V}$，输出 OKVS 的编码结果 $D$ 或以可忽略的概率输出错误指示符 $\perp$。
