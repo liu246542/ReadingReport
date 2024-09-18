@@ -276,22 +276,64 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
   h(x) = 0^{s-1}c(x)0^{m-s-w+1}.
 \end{equation}
 与文献~\cite{dillinger2021ribbon}不同，在缎带过滤器的构造中，需要强制将 $c(x)$ 的第一个比特设为 $1$\footnote{作者表示这样的改变并不会影响解方程的效率，在分析时还是假设 $c(x)$ 为 $\{0,1\}^w$ 上的均匀分布~\cite{dillinger2021ribbon}。}。
-在构建过滤器的过程中，缎带过滤器需要构造形如 $M \cdot Z = B$ 的方程组，其中 $M$ 为 $m\times m$ 的矩阵，$B$ 为 $m\times r$ 的矩阵。最终求解得到的 $Z$ 就是所构建的过滤器。
+在 $\mathsf{Construct}$ 过程中，缎带过滤器需要构造形如 $M \cdot Z = B$ 的方程组，其中 $M$ 为 $m\times m$ 的矩阵，$B$ 为 $m\times r$ 的矩阵。最终求解得到的 $Z$ 就是所构建的过滤器。
 我们用 $M[i]$ 表示矩阵 $M$ 的第 $i$ 行，在构建之前，缎带过滤器需要初始化全为 $0$ 的 $M$ 和 $B$ 两个矩阵。
-对于集合 $S$ 中的每一个元素 $x$，缎带过滤器的 $\mathsf{Construct}$ 过程描述如下：
+对于集合 $S$ 中的每一个元素 $x$，缎带过滤器中 $M$ 和 $B$ 的构造过程如下：
+% $\mathsf{Construct}$ 过程描述如下：
 \begin{itemize}
-  \item 根据 $x$ 计算其起始位置 $i\gets s(x)$，哈希结果 $c \gets h(x)$，以及指纹结果 $b \gets f(x)$。
+  \item 根据 $x$ 计算其起始位置 $i\gets s(x)$，哈希函数结果 $c \gets h(x)$，以及指纹函数结果 $b \gets f(x)$。
   \item 如果 $M[i]$ 为 $0^{m}$，则直接将令 $M[i] \gets c$，$B[i] \gets c$，并返回插入成功。否则，计算 $c \gets c \oplus M[i]$，$b \gets b \oplus B[i]$。
   \item 当 $c=0^{m}$ 且 $b = 0^{m}$ 时，返回重复插入；当 $c=0^{m}$ 但 $b \neq 0^{m}$ 时，返回插入失败；当 $c\neq 0^{m}$ 时，找到 $c$ 上第一个比特为 $1$ 的位置，记为 $i$，并返回上一步继续执行。
 \end{itemize}
+这里唯一出现插入失败的情况是当 $c=0^{m}$ 但 $b\neq 0^{m}$ 时，换句话说，在这种情况下两个元素产生了哈希碰撞但又具有不同的指纹结果，这样就会导致方程无解，从而导致插入元素失败。
+% 这种情况的解决方法就是增大 $m$ 的值，尽量避免
+当集合 $S$ 中所有元素都成功插入，则开始对方程组 $M \cdot Z = B$ 进行求解，得到的 $Z$ 便是所构建的过滤器。
+从以上过程也可以发现，这样所构建的矩阵 $M$ 为一个近似于三角矩阵的形式，如图~\ref{fig:ribbon_construc}所示，因此可以直接使用向后替换法来快速对方程求解。
 
-\subsection{总结}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/ribbon_filter_construction.pdf}
+  \caption{缎带过滤器构造过程中的矩阵示例（来源：文献~\cite{dillinger2021ribbon}）}
+  \label{fig:ribbon_construc}
+\end{figure}
+
+缎带过滤器的 $\mathsf{Evaluate}$ 过程就比较直接，对于给定的输入 $x$，只需要计算 $h(x)\cdot Z$ 的结果是否与 $f(x)$ 相等即可。
+因为方程中所有元素都是使用二进制形式来表示，实际上这一过程就是将 $h(x)$ 中所有为 $1$ 的位置对应在 $Z$ 上的值进行异或，如式~\ref{eq:ribbon_query}所示。
+而异或过滤器和二进制引信过滤器在 $\mathsf{Evaluate}$ 也是类似的方式，只不过它们只需要找到三个（或四个）位置上的值进行异或。
+但考虑到异或操作本身执行效率非常高，缎带过滤器虽然需要处理更多的异或操作，但实际中这些差距并不明显。
+\begin{equation}
+  h(x) \cdot Z = \bigoplus Z[i] \mbox{, } \forall i \in h(x) \mbox{ and } h(x)[i] = 1.
+  \label{eq:ribbon_query}
+\end{equation}
+
+缎带过滤器的原文~\cite{dillinger2021ribbon}并没有给出理论上的存储开销分析，而是通过一系列实验验证缎带过滤器在存储上的优势。
+而实验中主要是将异或过滤器和缎带过滤器的两个扩展版本进行对比，这两个扩展版本分别是齐次缎带过滤器（Homogeneous Ribbon filter）和平衡缎带过滤器（Balanced Ribbon filter）。
+% 对比的是缎带过滤器的两个扩展版本
+% 文献~\cite{dillinger2021ribbon}中还对缎带过滤器提出了两个扩展版本，分别是。
+从实验结果来看，在相同的假正例率情况下，随着哈希函数中的参数 $w$ 越大，负载因子也随之增大。
+当 $w=32$，$\epsilon=2^{-8}$ 时，齐次缎带过滤器的负载因子与异或过滤器相当。
+而对于平衡缎带过滤器，当 $w$ 分别取 $32$ 和 $64$ 时，其负载因子可以达到 $96\%$ 甚至 $99\%$。
+
 
 异或过滤器和二进制引信过滤器中的哈希函数可以看作映射为只有三个位置为 $1$ 比特其他位置都为 $0$ 形式。
 这种哈希函数在之前的工作~\cite{botelho2013Practical,genuzio2016Fast}中实际也有讨论。
 
-\section{不经意的键值存储}
+\section{不经意键值存储}
+
+不经意键值存储（Obilivious Key-Value Store，OKVS）的概念最早是由 Garimella 等人~\cite{garimella2021oblivious}于2021年提出的。
+正如\textbf{定义~\ref{def:okvs}}中所述，不经意键值存储包含 $\mathsf{Encode}$ 和 $\mathsf{Decode}$ 两个算法，它主要对键值型数据进行编码。
+% OKVS 针对的是键值型数据，
+对于编码结果 $D$，当其存储的键值对 $\{k, v\}$ 中 $v$ 为随机的数值，那么 $D$ 会隐藏关于 $k$ 的信息。
+这也就是所谓的不经意性。
+
+最直接的构造方式是多项式插值法，也就是说对于 $k_i \mapsto v_i$ 的映射看作坐标 $(k_i, v_i)$，通过插值构造多项式 $p$，使得 $p(k_i) = v_i$ 成立。
+% 即把键值型数据 $\{(k_1, v_1), (k_2, v_2), \dots, (k_i, v_i), \dots (k_n, v_n)\}$ 中的 $(k_i, v_i)$ 看作坐标，通过插值确定多项式 $p$，使得对于 $(k_i, v_i)$ 满足 $p(k_i) = v_i$。
+对于编码我们只需要记录多项式的系数，而系数个数刚好就是插值的坐标数量，因此这种构造方式的负载因子刚好为 $1$。
+
+
 
 \subsection{构造思路}
 
 \subsection{RB-OKVS}
+
+\section{总结}
