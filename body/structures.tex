@@ -106,7 +106,7 @@
 
 % 排序进行优化
 
-\section{异或型过滤器}
+\section{异或型过滤器}\label{sec:xor-based-filters}
 
 Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异或型结构的过滤器。
 与前面介绍的布隆过滤器和布谷鸟过滤器不同，它并不是用来判断元素是否属于某一集合，而是用来返回元素对应函数值的一种概率型数据结构。
@@ -123,7 +123,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 因为该构造需要使用两个哈希表进行存储，且构造需要使用贪心算法，无论在存储方面还是在构建过程中都存在较大的开销。
 % 因为该构造需要使用贪心算法找出非冲突地址，构建
 % 且使用两个哈希表存储所占用的存储开销也比较大，
-后续的工作~\cite{charles2008bloomier}通过组建方程的形式，将构建复杂度从原本的 $O(n\log(n))$ 降低为 $\log(n)$。
+后续的工作~\cite{charles2008bloomier}通过转换成图的形式，将构建复杂度从原本的 $O(n\log(n))$ 降低为 $\log(n)$。
 但这些工作为了确保返回的是 $f(x)$，需要在增加额外的信息用于判断 $x'\notin S$ 的情况，在构建效率和存储开销上都不能进一步提高。
 % 下面将介绍的异或型过滤器
 后续的异或型过滤器~\cite{graf2020xor,dillinger2021ribbon,graf2022binary}继承了 Bloomier 过滤器中异或操作的思路，但它们只考虑做元素是否属于某一集合的判断，并不考虑返回 $f(x)$ 本身。
@@ -177,7 +177,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 
 异或过滤器出现假正例的情况就是出现 $x'\notin S$ 且 $\mathsf{Evaluate}$ 结果正好等于 $x'$ 的指纹。
 也就是说异或过滤器的假正例率与指纹长度有关。
-假设指纹长度为 $|f(x)|$，那么假正例率 $\epsilon = 1 / 2^|f(x)|$。
+假设指纹长度为 $|f(x)|$，那么假正例率 $\epsilon = 1 / 2^{|f(x)|}$。
 当集合非常大时，异或过滤器构造成功的概率可以达到 $100\%$。
 比如当集合大小为 $10^7$ 时，构建成功的概率几乎为 $1$。
 对于小集合，文献~\cite{graf2020xor}通过实验发现，当过滤器长度设定为 $1.23 n + 32$ 时，成功构建的概率要大于 $0.8$。
@@ -314,28 +314,130 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 当 $w=32$，$\epsilon=2^{-8}$ 时，齐次缎带过滤器的负载因子与异或过滤器相当。
 而对于平衡缎带过滤器，当 $w$ 分别取 $32$ 和 $64$ 时，其负载因子可以达到 $96\%$ 甚至 $99\%$。
 
-
-异或过滤器和二进制引信过滤器中的哈希函数可以看作映射为只有三个位置为 $1$ 比特其他位置都为 $0$ 形式。
-这种哈希函数在之前的工作~\cite{botelho2013Practical,genuzio2016Fast}中实际也有讨论。
-
 \section{不经意键值存储}
 
 不经意键值存储（Obilivious Key-Value Store，OKVS）的概念最早是由 Garimella 等人~\cite{garimella2021oblivious}于2021年提出的。
 正如\textbf{定义~\ref{def:okvs}}中所述，不经意键值存储包含 $\mathsf{Encode}$ 和 $\mathsf{Decode}$ 两个算法，它主要对键值型数据进行编码。
 % OKVS 针对的是键值型数据，
 对于编码结果 $D$，当其存储的键值对 $\{k, v\}$ 中 $v$ 为随机的数值，那么 $D$ 会隐藏关于 $k$ 的信息。
-这也就是所谓的不经意性。
-
-最直接的构造方式是多项式插值法，也就是说对于 $k_i \mapsto v_i$ 的映射看作坐标 $(k_i, v_i)$，通过插值构造多项式 $p$，使得 $p(k_i) = v_i$ 成立。
-% 即把键值型数据 $\{(k_1, v_1), (k_2, v_2), \dots, (k_i, v_i), \dots (k_n, v_n)\}$ 中的 $(k_i, v_i)$ 看作坐标，通过插值确定多项式 $p$，使得对于 $(k_i, v_i)$ 满足 $p(k_i) = v_i$。
-对于编码我们只需要记录多项式的系数，而系数个数刚好就是插值的坐标数量，因此这种构造方式的负载因子刚好为 $1$。
-尽管在存储方面达到最优，但采用多项式插值的方式在编码时需要 $O(n\log^2n)$ 的复杂度~\cite{moenck1972Fast}，当编码的键值对数量太大时，编码开销较大。
-这就需要构造在存储和编解码开销之间取平衡的构造。
+% 这也就是所谓的不经意性。
+这种不经意的性质使得不经意键值存储可以应用到隐私集合运算协议中。
+尽管不经意键值存储的概念提出得比较晚，但相似的数据结构在之前的隐私集合运算协议（如文献~\cite{dong2013when,pinkas2020psi}）也有出现。
+目前能在存储开销和编解码开销之间取得较好平衡的方案由Bienstock 等人~\cite{bienstock2023NearOptimal}于2023年提出。
+在介绍该方案之前，我们首先介绍目前已有的一些构造思路。
 
 \subsection{构造思路}
 
+\textbf{多项式插值法：}
+为了编码 $\{(k_1, v_1), (k_2, v_2), \dots, (k_n, v_n)\}$ 这样的键值型数据，最直接的方式是采用多项式插值法。
+也就是说把 $k_i \mapsto v_i$ 的映射看作坐标 $(k_i, v_i)$，通过插值构造多项式 $p$，使得对于所有的 $i\in[1,n]$，$p(k_i) = v_i$ 始终成立。
+% 即把键值型数据 $\{(k_1, v_1), (k_2, v_2), \dots, (k_i, v_i), \dots (k_n, v_n)\}$ 中的 $(k_i, v_i)$ 看作坐标，通过插值确定多项式 $p$，使得对于 $(k_i, v_i)$ 满足 $p(k_i) = v_i$。
+而编码结果就是多项式的系数，系数个数刚好就是插值的坐标数量，因此这种构造方式的负载因子为 $1$。
+尽管在存储方面达到最优，但采用多项式插值的方式在编码时需要 $O(n\log^2n)$ 的复杂度~\cite{moenck1972Fast}，当编码的键值对数量太大时，编码开销较大。
+% 这就需要构造在存储和编解码开销之间取平衡的编解码算法。
 
+% 另一种是采用异或型过滤器的构造思路。
+% 这里主要是介绍混淆布隆过滤器（Garbled Bloom filter）~\cite{dong2013when}。
+\textbf{混淆布隆过滤器（Garbled Bloom filter）~\cite{dong2013when}：}
+根据表~\ref{tab:construct}中的总结，混淆布隆过滤器严格意义上属于异或型过滤器的范畴，因为它存储的是插入元素本身（即 $f(x) = x$），不满足不经意的性质。
+但如果将它存储的 $f(x)$ 设置为随机值，并将它的输出由 $\mathsf{True}/\mathsf{False}$ 修改为 $f(x)$，那么它也可以看作是不经意键值存储。
+混淆布隆过滤器与布隆过滤器类似，都是使用 $k$ 个不同的哈希函数 $h_1, h_2, \dots, h_t$ 来计算映射位置。
+对于键值型数据$\{(x_i, y_i)\}_{i\in [1, n]}$，编码结果记为 $D$，其编码过程如下：
+\begin{itemize}
+  \item 使用 $k$ 个哈希函数计算出 $x_i$ 的 $k$ 个位置，如果 $D$ 的 $k$ 个位置上都为空值，则直接将 $y_i$ 拆分成 $k$ 个值的异或，存储在 $D$ 的 $k$ 个位置上。
+  \item 如果 $D$ 的 $k$ 个位置上至少有一个为空，则在不为空的位置共用已有的值，剩下的位置通过异或进行填充，确保这 $k$ 个位置上的异或结果为 $y_i$。
+  \item 如果 $D$ 的 $k$ 个位置上都已被占用，则返回构造失败。
+\end{itemize}
+从编码过程可以看出，混淆布隆过滤器可以看作是将布隆过滤器改造成异或型过滤器。
+因此混淆布隆过滤器在存储方面性能与布隆过滤器基本一致。
+根据式~\ref{eq:BF_k}，我们可以推导出在 $k$ 取最优的情况下，$D$ 的长度 $m=1.44 kn$，对应的假正例率为 $1/2^k$。
+文献~\cite{garimella2021oblivious}指出混淆过滤器编码结果的大小为 $O(kn)$（即负载因子为 $O(1/k)$），这在隐私集合操作相关协议中会造成较大的通信开销。
+
+\textbf{混淆布谷鸟哈希表（Garbled Cuckoo Table，GCT）~\cite{pinkas2020psi,garimella2021oblivious}：}
+混淆布谷鸟哈希表实际上是 Bloomier 过滤器~\cite{charles2008bloomier} 的一种变体。
+在章节~\ref{sec:xor-based-filters}中我们介绍了 Bloomier 过滤器的最初构造方案~\cite{chazelle2004bloomier}。
+在 2008 年，Charles 等人~\cite{charles2008bloomier}对初始方案进行了改进，将构造过滤器的过程看作是给图的顶点赋值过程。
+以两个哈希函数 $h_1$ 和 $h_2$ 为例，他们思路是将每个元素 $x$ 对应的 $f(x)$ 看作一条边，$D[h_1(x)]$ 和 $D[h_2(x)]$ 看作边对应的两个顶点。
+% 且要求 。
+在构造过程中，首先确定整体图的形状，再通过剥离（peeling）操作对为顶点赋值。
+剥离操作依次移除图中度为 $1$ 的节点及它对应的边。
+如果剥离成功，则按照移除节点的逆序为各节点赋值，使其满足 $f(x) = D[h_1(x)] \oplus D[h_2(x)]$。
+如果图中剩余节点，意味图中出现了环，则需要重新选择哈希函数，直到能够剥离成功为止。
+混淆布谷鸟哈希表主要在此基础上进行了两方面的改进，一是混淆布谷鸟哈希表中使用的哈希函数一开始就会确定，不会因为环的出现而重新选择；二是当出现环的情况，混淆布谷鸟哈希表采用联立方程组的方式，利用高斯消元法对环中节点进行求解。
+% 也是通过这种方式完成构造，与
+根据使用的哈希函数个数，又分为 2H-GCT~\cite{pinkas2020psi} 和 3H-GCT~\cite{garimella2021oblivious}两种构造，即分别使用 $2$ 个哈希函数和 $3$ 个哈希函数。
+根据文献~\cite{bienstock2023NearOptimal}中的实验结果，2H-GCT 的负载因子约为 $0.4$，而 3H-GCT 在 $0.77$ 到 $0.81$ 之间。
+% 但因为目前没有有效的方法在给出构造失败概率时，分析 2H-GCT 和 3H-GCT 的参数
+
+\textbf{高斯消元法：}
+当我们将编码结构 $D$ 看作长度为 $m$ 的向量时，那么构建 $D$ 的过程就可以看作解线性方程组。
+以键值数据 $\{(k_i, v_i)\}_{i\in [n]}$ 为例，假设存在一个随机映射 $r_{\mathcal{F}}:\mathcal{K} \to \{0,1\}^m$，可以将所有的键 $k\in \mathcal{K}$ 映射为长度为 $m$ 的向量。那么我们就可以构造 $n\times m$ 的矩阵 $M$：
+\begin{equation}
+  M = \left[ \begin{array}{c} r_{\mathcal{F}}(k_1)^\intercal \\ r_{\mathcal{F}}(k_2)^\intercal \\ \dots \\ r_{\mathcal{F}}(k_n)^\intercal  \end{array}  \right].
+\end{equation}
+% \cite{raghuraman2022blazing,bienstock2023NearOptimal}
+而对于值 $v=[v_1, v_2, \dots, v_n]^\intercal$ 则可以看作长度为 $n$ 的向量。
+此时，只需要对方程 $M\cdot D = v$ 使用高斯消元法求解，得到的 $D$ 就是我们需要的编码结果。
+文献~\cite{garimella2021oblivious} 给出了使用随机矩阵的构造方式。
+为了确保方程有解，要求 $m = n + O(\log n)$，在实际中的编码过程复杂度为 $O(n^3)$。
+这种方式编码开销甚至超过了基于多项式插值的方法，计算成本太大。
+文献~\cite{raghuraman2022blazing}通过使用矩阵变换的方式将 $M$ 转换成三角矩阵，从而加速高斯消元的过程。
+该方案的存储开销与 3H-GCT 基本相同，负载因子大约在 $0.78$ 到 $0.81$ 之间。
+最近的一篇工作~\cite{bienstock2023NearOptimal}采用随机带状矩阵（Random Band Matrix）进一步了降低存储开销，最优情况下，负载因子可以达到 $0.97$。
+% 将计算开销从 $O(n^3)$ 降为 $O(n\lambda)$。
+% 该方案的存储复杂度和编解码复杂度与3H-GCT基本相同，当构造失败概率为 $2^{-\lambda}$ 时，其编码复杂度为 $O(n\lambda)$，
+
+\begin{table}
+  \centering
+  \caption{基于不同构造的 OKVS 性能对比 （编码失败概率： $2^{-\lambda}$）}
+  \label{tab:okvs_comparison}
+  \begin{tabular}{cccc}
+    \toprule
+    OKVS 类型  &  负载因子  &  编码复杂度 & 解码复杂度 \\
+    \midrule
+    多项式 & 1 & $O(n\log^2n)$ & $O(n)$ \\
+    随机矩阵~\cite{garimella2021oblivious} & 1 & $O(n^3)$ & $O(n)$ \\
+    混淆布隆过滤器~\cite{dong2013when} & $O(1/\lambda)$ & $O(n\lambda)$ & $O(n)$ \\
+    2H-GCT~\cite{pinkas2020psi} & $0.4$ & $O(n\lambda)$ & $O(\lambda)$ \\
+    3H-GCT~\cite{garimella2021oblivious} & $0.77-0.81$ & $O(n\lambda)$ & $O(\lambda)$ \\
+    矩阵三角化算法~\cite{raghuraman2022blazing} & $0.78-0.81$ & $O(n\lambda)$ & $O(\lambda)$ \\
+    随机带状矩阵~\cite{bienstock2023NearOptimal} & $0.91-0.97$ & $O(n\lambda)$ & $O(\lambda)$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+表~\ref{tab:okvs_comparison}~对现有构造的存储复杂度和编解码复杂度进行了总结。
+从表中我们可以看出，目前综合性能最优的是基于随机带状矩阵构造的方案~\cite{bienstock2023NearOptimal}，即随机带状不经意键值存储（Random Band Oblivious Key-Value Store，RB-OKVS）。下面将具体介绍它的构造方式。
+% 最优的方案是采用
+% 总结了现有这些构造工作的存储复杂度和编解码复杂度。
 
 \subsection{RB-OKVS}
 
+RB-OKVS 的构造是基于高斯消元法。
+正如前文所述，重点是如何构建矩阵 $M$ 使得方程 $M\cdot D = v$ 能快速求解。
+构建 $M$ 的核心在于映射函数 $r_{\mathcal{F}}$ 的设计。
+% RB-OKVS 的构造与前面介绍的缎带过滤器~\cite{dillinger2021ribbon}很类似。
+在 RB-OKVS 中，$r_{\mathcal{F}}$ 的构造方法与前面介绍的缎带过滤器~\cite{dillinger2021ribbon}非常类似，都需要提前设置一个小于 $m$ 的参数 $w$
+% 在构建之前，RB-OKVS 需要
+RB-OKVS 的编码需要使用两个哈希函数 $h_1$ 和 $h_2$，其中 $h_1$ 将任意的 $k\in \mathcal{K}$ 映射到 $\{1, 2, \ldots, m-w\}$ 中的数值，$h_2$ 将任意的 $k\in \mathcal{K}$ 映射为长度为 $w$ 的向量。
+对于 $k_i$ 来说，其对应的映射结果为：
+\begin{equation}
+  r_{\mathcal{F}}(k_i) = 0^{h_1(k_i) - 1}h_2(k_i)0^{m - w - h_1(k_i) + 1}.
+\end{equation}
+对于输入的键值型数据 $\{(k_i, v_i)\}_{i\in[1,n]}$，RB-OKVS 的 $\mathsf{Encode}$ 过程描述如下：
+\begin{itemize}
+  \item 使用上述的映射函数 $r_{\mathcal{F}}$ 对每一个 $k_i$ 进行计算，得到结果形成矩阵 $M$，将所有 $v_i$ 组成的向量记作 $v$。
+  \item 求解方程 $M\cdot D = v$：首先根据 $h_1(k_i)$ 的大小对 $M$ 和 $v$ 重新排序，再直接使用向后替换法进行消元，完成对 $D$ 的求解。
+\end{itemize}
+因为哈希函数$h_1$的值决定了矩阵$M$中行向量不为 $0$ 的起始位置，所以只需要根据 $h_1$ 的值进行排序，便可以快速得到近似于三角矩阵的形式，从而可以使用后向替换法快速消元。
+这种构造形式与缎带过滤器如出一辙，二者不同之处在于缎带过滤器没有使用排序而是在插入时排列。
+为了保证不经意性，编码结果 $D$ 中的自由变量均为随机值。
+
+% $\mathsf{Decode}$
+
+% 参数选择
+
 \section{总结}
+
+异或过滤器和二进制引信过滤器中的哈希函数可以看作映射为只有三个位置为 $1$ 比特其他位置都为 $0$ 形式。
+这种哈希函数在之前的工作~\cite{botelho2013Practical,genuzio2016Fast}中实际也有讨论。
