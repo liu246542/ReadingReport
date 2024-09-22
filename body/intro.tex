@@ -153,7 +153,7 @@ XOR型的典型代表是异或过滤器（xor filter）~\cite{fan2014cuckoo}，�
 
     对于部分安全需求较高的协议，不经意键值存储还需要满足随机性，即：
 
-    \textbf{随机性：} 对于任意的集合 $A = \{(x_i, y_i)\}_{i\in [n]} \subseteq \mathcal{K} \times \mathcal{V}$ 和 $k' \notin \{x_1, x_2, \dots, x_n\}$，如果 $\mathsf{Encode}(A) = D$ 且 $D\neq \perp$，则 $\mathsf{Decode}(D, k')$ 的输出与随机选择的 $v\gets \mathcal{V}$ 统计不可区分。
+    \textbf{随机性：} 对于任意的集合 $A = \{(x_i, y_i)\}_{i\in [n]} \subseteq \mathcal{K} \times \mathcal{V}$ 和 $x' \notin \{x_1, x_2, \dots, x_n\}$，如果 $\mathsf{Encode}(A) = D$ 且 $D\neq \perp$，则 $\mathsf{Decode}(D, x')$ 的输出与随机选择的 $v\gets \mathcal{V}$ 统计不可区分。
 \end{definition}
 
 % 衡量指标：
