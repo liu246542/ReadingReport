@@ -5,10 +5,10 @@
 \section{布隆过滤器}
 
 在构造网络安全相关协议时，我们通常会使用到许多不同类型的数据结构。
-其中，布隆过滤器（Bloom filter）~\cite{bloom1970space}作为一种经典的概率型数据结构，在IP地址过滤、识别恶意邮件、DoS 和 DDos 攻击检测等场景有着广泛的应用~\cite{geravand2013bloom}。
+其中，布隆过滤器(Bloom filter)~\cite{bloom1970space}作为一种经典的概率型数据结构，在IP地址过滤、识别恶意邮件、DoS 和 DDos 攻击检测等场景有着广泛的应用~\cite{geravand2013bloom}。
 % 可搜索加密、隐私信息检索、隐私集合运算等安全协议中有着广泛的应用~\cite{geravand2013bloom}。
 % 布隆过滤器的定义是一种空间效率
-布隆过滤器的作用是快速判断元素是否属于某一集合（membership query），它是由 $k$ 个哈希函数构造的哈希表结构，具有空间效率高、判断速度快的特点。
+布隆过滤器的作用是快速判断元素是否属于某一集合(membership query)，它是由 $k$ 个哈希函数构造的哈希表结构，具有空间效率高、判断速度快的特点。
 布隆过滤器的构造如图~\ref{fig:Bloom_example}~所示，哈希表的每个位置上存储的是 $0/1$ 比特，每个元素对应的位置由 $k$ 个哈希函数所确定。
 % 它主要有构造和判断元素两个过程。
 \begin{figure}[ht]
@@ -52,7 +52,7 @@
 % 在判断某个元素是否属于集合 $S$ 时，只需要计算该元素对应的 $k$ 个位置，然后检查这 $k$ 个位置上的比特是否都为 $1$。
 % 只要有一个位置上出现了 $0$，那么判断结果就是不属于；否则，布隆过滤器认为该元素属于集合 $S$。
 
-从布隆过滤器的构造和判断过程可以看出，如果一个元素属于集合 $S$，那么判断结果一定是正确的；但是如果一个元素不属于集合 $S$ （如图~\ref{fig:Bloom_example}~中的 $x_5$），布隆过滤器也有可能会认为该元素属于 $S$（输出结果为 True），此时判断错误的概率也称为假正例率（false positive rate）。
+从布隆过滤器的构造和判断过程可以看出，如果一个元素属于集合 $S$，那么判断结果一定是正确的；但是如果一个元素不属于集合 $S$ （如图~\ref{fig:Bloom_example}~中的 $x_5$），布隆过滤器也有可能会认为该元素属于 $S$（输出结果为 True），此时判断错误的概率也称为假正例率(false positive rate)。
 尽管布隆过滤器存在误判的问题，但在实际应用场景中，只要将误判率控制在较小的值，一般认为以一定的误判换取低空间开销和高效判断是值得的。
 
 布隆过滤器的假正例率 $\epsilon$ 由布隆过滤器的长度 $m$，使用的哈希函数个数 $k$ 和集合中的元素个数 $n$ 所决定。
@@ -106,12 +106,12 @@
     \item[$\circ$] $\mathsf{Evaluate}(x, \mathcal{H}, F) \to \mbox{True}/\mbox{False} $：输入元素 $x$，预先给定的哈希函数集合 $\mathcal{H}$，输出结果 True 或者 False。
     \end{itemize}
 
-    \textbf{正确性：} 对于任意的 $S \subseteq \mathcal{U}$，都有：1）构建过程中，输出 $\perp$ 的概率是可忽略的；2）如果 $F \gets \mathsf{Construct}(S, \mathcal{H})$，且 $F \neq \perp$，那么在判断过程中，对于任意的 $x \in S$，$\Pr[\mathsf{Evaluate}(x, \mathcal{H}, F) = \mbox{True}] = 1$；对于任意 $x' \notin S$，$\Pr[\mathsf{Evaluate}(x, \mathcal{H}, F) = \mbox{True}]$ 为可忽略的。
+    \textbf{正确性：} 对于任意的 $S \subseteq \mathcal{U}$，都有：a).构建过程中，输出 $\perp$ 的概率是可忽略的；b).如果 $F \gets \mathsf{Construct}(S, \mathcal{H})$，且 $F \neq \perp$，那么在判断过程中，对于任意的 $x \in S$，$\Pr[\mathsf{Evaluate}(x, \mathcal{H}, F) = \mbox{True}] = 1$；对于任意 $x' \notin S$，$\Pr[\mathsf{Evaluate}(x, \mathcal{H}, F) = \mbox{True}]$ 为可忽略的。
 \end{definition}
 从以上定义中可以看出，如果一个元素在原本输入的集合中，那么过滤器在判断过程中一定能返回正确的结果，即过滤器中不存在假负例的情况；反之，如果一个元素不存在于输入的集合中，过滤器会大概率返回正确的结果，即过滤器中会存在一定的假正例率。
 
 在判断过程中，需要使用 $\mathcal{H}$ 中的哈希函数计算出元素在 $F$ 中对应的位置，再对这些位置上记录的结果进行计算，最后根据计算结果与事先定义的 $f(x)$ 进行比较返回 $\mbox{Ture}$ 或者 $\mbox{False}$。
-计算过程也被称为探测（probing），文献~\cite{dillinger2021ribbon}根据探测方式将过滤器分为以下三种类型：
+计算过程也被称为探测(probing)，文献~\cite{dillinger2021ribbon}根据探测方式将过滤器分为以下三种类型：
 \begin{itemize}
     \item \textbf{AND型：}在通过哈希函数计算出的位置中，如果所有位置上结果都与 $f(x)$ 相等，那么就输出 $\mbox{True}$；
     \item \textbf{OR型：}在通过哈希函数计算出的位置中，如果至少有一个位置上的值与 $f(x)$ 相等，那么就输出 $\mbox{True}$，否则输出 $\mbox{False}$。
@@ -120,8 +120,8 @@
 \end{itemize}
 从以上分类可以看出，布隆过滤器的判断方式属于AND型。
 % AND型的典型代表是布隆过滤器，
-OR型的典型代表是布谷鸟过滤器（cuckoo filter）~\cite{fan2014cuckoo}，这种构造的特点是支持元素的动态插入和删除。
-XOR型的典型代表是异或过滤器（xor filter）~\cite{fan2014cuckoo}，这类过滤器在结构上非常紧凑，具有较高的空间利用率，但受限于构建方式，这类构造通常不能支持元素的动态更新。
+OR型的典型代表是布谷鸟过滤器(cuckoo filter)~\cite{fan2014cuckoo}，这种构造的特点是支持元素的动态插入和删除。
+XOR型的典型代表是异或过滤器(xor filter)~\cite{fan2014cuckoo}，这类过滤器在结构上非常紧凑，具有较高的空间利用率，但受限于构建方式，这类构造通常不能支持元素的动态更新。
 
 % 这里引用文献~\cite{2024YinSiJiHeYunSuanZhongDeGuanJianShuJuJieGouYanJiu}
 不同的过滤器中对 $f(x)$ 的定义也略有不同。
@@ -129,14 +129,14 @@ XOR型的典型代表是异或过滤器（xor filter）~\cite{fan2014cuckoo}，�
 \begin{itemize}
     \item $f(x)$ 为比特 $1$，最典型的是布隆过滤器，即要求 $x$ 对应所有位置上的结果都为 $1$，过滤器才会返回 $\mbox{True}$。
     % ，最典型的是布隆过滤器，即只有当通过哈希计算出的所有位置上都为 $1$，那么返回 $\mathsf{True}$。
-    \item $f(x)$ 等于元素 $x$ 本身，典型的是混淆布隆过滤器 （garbled Bloom filter），即计算的结果为 $x$，过滤器才会返回 $\mbox{True}$。
-    \item $f(x)$ 为 $x$ 的指纹（fingerprint），一般指的是 $x$ 的哈希值，典型代表为布谷鸟过滤器，即当有一个位置上的值与 $x$ 的指纹相同，过滤器才会返回 $\mbox{True}$。
+    \item $f(x)$ 等于元素 $x$ 本身，典型的是混淆布隆过滤器 (garbled Bloom filter)，即计算的结果为 $x$，过滤器才会返回 $\mbox{True}$。
+    \item $f(x)$ 为 $x$ 的指纹(fingerprint)，一般指的是 $x$ 的哈希值，典型代表为布谷鸟过滤器，即当有一个位置上的值与 $x$ 的指纹相同，过滤器才会返回 $\mbox{True}$。
     \item $f(x)$ 为任意函数，典型的是 Bloomier 过滤器，也就是说 $f(x)$ 的形式并不重要，或者说只要满足是 $x$ 一种映射关系即可。
 \end{itemize}
 
 从上述分类可以看出，对 $f(x)$ 的定义可以是简单的比特 $1$，也可以是关于 $x$ 的任意一种映射关系。
 从另一个角度来看，键值型数据也可以看作是从键到值的映射，这样一来，键值型数据也可以编码成过滤器的形式。
-按照这种想法得到的构造称作不经意键值存储（oblivious key-value store, OKVS），与过滤器不同，不经意键值存储返回的不是 $\mbox{True}$ 或者 $\mbox{False}$，而是与输入键相对应的值。
+按照这种想法得到的构造称作不经意键值存储(Oblivious Key-Value Store, OKVS)，与过滤器不同，不经意键值存储返回的不是 $\mbox{True}$ 或者 $\mbox{False}$，而是与输入键相对应的值。
 % 利用这种思路构造的结构称作不经意的键值存储（Oblivious Key-Value Store, OKVS），与过滤器不同，OKVS 返回的不是 $\mathsf{True}$ 或者 $\mathsf{False}$，而是与输入对应的数值。
 不经意键值存储的定义如下：
 
@@ -159,7 +159,7 @@ XOR型的典型代表是异或过滤器（xor filter）~\cite{fan2014cuckoo}，�
 % 衡量指标：
 我们主要考虑这些数据结构在存储和计算两个方面的性能。
 % 评估以上数据结构的性能主要考虑存储和计算两个方面，
-在存储开销方面，一是要衡量过滤器本身的长度，即 $m$ 的数值，我们一般使用负载因子（load factor） $\alpha = n/m$ 作为评估指标，即 $\alpha$ 越接近 $1$，说明空间利用率越高；二是需要衡量均摊空间开销（amortized space cost），即平均每个元素上在过滤器中所占用的存储空间。
+在存储开销方面，一是要衡量过滤器本身的长度，即 $m$ 的数值，我们一般使用负载因子(load factor) $\alpha = n/m$ 作为评估指标，即 $\alpha$ 越接近 $1$，说明空间利用率越高；二是需要衡量均摊空间开销(amortized space cost)，即平均每个元素上在过滤器中所占用的存储空间。
 在计算开销方面，我们主要分析构建/评估（或编码/解码）过程的复杂度。
 % 基于以上讨论内容，
 表~\ref{tab:construct}对本文中所介绍的过滤器以及不经意键值存储结构进行了总结。
@@ -188,15 +188,15 @@ XOR型的典型代表是异或过滤器（xor filter）~\cite{fan2014cuckoo}，�
 
 \section{总结}
 
-布隆过滤器是一种近似成员查询过滤器（approximate membership query filter），即以一定的误判率回答查询元素是否存在于集合中。
+布隆过滤器是一种近似成员查询过滤器(approximate membership query filter)，即以一定的误判率回答查询元素是否存在于集合中。
 得益于其简洁的构造方式以及高效的判断性能，布隆过滤器的应用场景非常广泛。
-除了前面提到的IP地址过滤、识别恶意邮件、DoS 和 DDos 攻击检测等场景之外，布隆过滤器及其衍生的数据结构也常被用于构造隐私保护相关协议。
+除了前面提到的IP地址过滤、识别恶意邮件、DoS 和 DDos 攻击检测等场景之外，布隆过滤器及其衍生的数据结构也常被用于构造隐私保护相关协议~\cite{zhang2024survey}。
 % 常用于对元素的存在性测试，在英文语境中，所谓``存在性测试''也被看作一种查询（m）
 % 容易理解的构造以及
 % 布隆过滤器的应用场景非常广泛，
 % 由布隆过滤器衍生的数据结构大致有两个
-布隆过滤器自提出后，各种变体形式层出不穷，如计数式布隆过滤器（counting Bloom filter）~\cite{lifan2000summary}，压缩布隆过滤器（compressed Bloom filter）~\cite{mitzenmacher2002compressed}，$d$-left 计数式布隆过滤器~\cite{bonomi2006improved}，块布隆过滤器（blocked Bloom filter）~\cite{putze2009cache}等。
-关于布隆过滤器的变体不是本文的重点，我们主要介绍布隆过滤器衍生出的新型数据结构，包括布谷鸟过滤器、异或过滤器、不经意键值存储等。
+布隆过滤器自提出后，各种变体形式层出不穷，如计数式布隆过滤器(counting Bloom filter)~\cite{lifan2000summary}，压缩布隆过滤器(compressed Bloom filter)~\cite{mitzenmacher2002compressed}，$d$-left 计数式布隆过滤器~\cite{bonomi2006improved}，块布隆过滤器(blocked Bloom filter)~\cite{putze2009cache}等。
+关于布隆过滤器的变体不在本文的讨论范围内，我们主要介绍布隆过滤器衍生出的新型数据结构，包括布谷鸟过滤器、异或过滤器、不经意键值存储等。
 我们将在第~\ref{chp:data_structure}章对这些衍生数据结构进行详细介绍。
 % 关于这些衍生数据结构我们将在第二章
 最后，我们将在第~\ref{chp:application}章介绍这些数据结构在隐私保护方面的应用。

@@ -8,12 +8,12 @@
 \section{布谷鸟过滤器}
 
 从上一章的分类我们可以知道，布谷鸟过滤器是一种 OR 型的过滤器，且 $f(x)$ 为 $x$ 的指纹信息。
-布谷鸟过滤器的概念最早是由 Fan 等人~\cite{fan2014cuckoo} 于2014年提出的，其构造方式受到了布谷鸟哈希表（cuckoo hash table）~\cite{pagh2004cuckoo}的启发。
+布谷鸟过滤器的概念最早是由 Fan 等人~\cite{fan2014cuckoo} 于2014年提出的，其构造方式受到了布谷鸟哈希表(cuckoo hash table)~\cite{pagh2004cuckoo}的启发。
 在介绍布谷鸟过滤器之前，我们首先介绍布谷鸟哈希表的构造。
 
 \subsection{布谷鸟哈希表}
 
-布谷鸟哈希表可以看作一个由多个桶（bucket）组成的数组结构。
+布谷鸟哈希表可以看作一个由多个桶(bucket)组成的数组结构。
 对于每个元素 $x$ 来说，它在哈希表中对应两个候选位置，分别由两个哈希函数 $h_1(x)$ 和 $h_2(x)$ 决定。
 在插入元素 $x$ 时，首先检查 $x$ 对应的两个位置上的桶中是否有多余位置。
 如果两个桶都有多余空间，则直接将 $x$ 放入桶中；如果两个桶都已满，则随机在一个候选位置上踢出一个元素并将 $x$ 放入该位置上。踢出的元素则重新插入到它对应的另一个候选位置上。
@@ -35,7 +35,7 @@
 与布谷鸟哈希表类似，布谷鸟过滤器也是由多个桶组成的数组结构。
 不同的是，在布谷鸟过滤器中每个桶中存储的并不是元素本身，而是元素的指纹。
 这就导致在将桶中的元素指纹踢出时，无法根据指纹信息确定它的另一个候选位置。
-因此布谷鸟过滤器采用了部分密钥布谷鸟哈希（partial-key cuckoo hashing）的技巧来解决该问题。
+因此布谷鸟过滤器采用了部分密钥布谷鸟哈希(partial-key cuckoo hashing)的技巧来解决该问题。
 也就是将元素的两个候选位置与元素的指纹值建立联系，这样就能在只知道元素的指纹值和其中一个位置信息的情况下计算出另一个位置信息。
 具体来说，对于元素 $x$，其对应的两个候选位置计算如下：
 \begin{align}
@@ -78,7 +78,7 @@
 % 那么其他 $q-1$ 个元素必须满足：1）具有相同的指纹 $t_x$，即概率为 $1/2^{|f|}$；2）具有相同的位置 $h_1(x)$ 或 $h_1 \oplus h(t_x)$，即概率为 $2/m$。
 % 因此 $q$ 个元素共享相同位置的概率为 $(2/m \cdot 1/2^{|f|})^{q-1}$。
 
-如章节~\ref{sec:defi_cate}~中所述，我们使用负载因子 $\alpha$ （$0\leq \alpha \leq 1$） 来表示布谷鸟过滤器的空间利用率，它的定义是过滤器中已占用空间大小与过滤器大小的比值。
+如章节~\ref{sec:defi_cate}~中所述，我们使用负载因子 $\alpha$ ($0\leq \alpha \leq 1$) 来表示布谷鸟过滤器的空间利用率，它的定义是过滤器中已占用空间大小与过滤器大小的比值。
 因此当 $\alpha$ 的值越接近 $1$，那就表示空间利用率越高。
 % 从文献~\cite{fan2014cuckoo}的实验结果来看，当
 在给定指纹长度 $|f|$ 和负载因子 $\alpha$ 的情况下，对于每个元素均摊的空间开销 $C$ 可以表示为：
@@ -117,7 +117,7 @@
 在布谷鸟过滤器原文~\cite{fan2014cuckoo}中就提到可以通过对桶中元素进行排序的方式来进一步降低存储开销。
 以桶大小 $b=4$，指纹大小 $|f| = 4$ 比特为例，在无任何优化的情况下，每个桶中需要存储 $4\times 4 = 16$ 比特。
 当桶中的指纹进行排序的话，那么就会出现 \num{3876} 种可能性\footnote{这里将空的条目看作 $0$，根据重复组合公式，即从 $2^4$ 种不同的数中有重复地取出 $4$ 个进行组合，一共有 $C_{16 + 4 - 1}^4 = 3876$ 种可能的情况。}。
-因此，每个桶中只需要使用 $12$ 比特的索引（$2^{12}=4096>3876$）而不是 $16$ 比特，即为每个指纹节省了 $1$ 比特。
+因此，每个桶中只需要使用 $12$ 比特的索引($2^{12}=4096>3876$)而不是 $16$ 比特，即为每个指纹节省了 $1$ 比特。
 在这之后，Breslow 和 Jayasena~\cite{breslow2020morton}提出了 Morton 过滤器，通过调整指纹在桶中的分布对存储和插入性能进行了优化。
 % 提出了 Morton 过滤器~\cite{breslow2020morton}，通过
 % 之后的
@@ -162,7 +162,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 
 % 构造关键在与如何确定唯一不冲突的位置
 
-首先介绍异或过滤器（xor filter）~\cite{graf2020xor}。
+首先介绍异或过滤器(xor filter)~\cite{graf2020xor}。
 % 正如表~\ref{tab:construct}中所示，异或过滤器
 正如前面所说，异或过滤器继承了 Bloomier 过滤器中异或操作的思想，但它返回的并不是 $f(x)$，而是判断 $x$ 是否属于集合 $S$（返回 True 或者 False），即符合\textbf{定义~\ref{def:filter}}中的描述。
 % 异或过滤器的构造受到
@@ -246,7 +246,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 \subsection{二进制引信过滤器}
 
 尽管异或过滤器在存储开销方面要优于布隆过滤器和布谷鸟过滤器，但它还存在优化的空间。
-2022 年，异或过滤器的作者 Graf 和 Lemire 在之前的基础上提出了一种新的异或型过滤器，称为二进制引信过滤器（binary fuse filter）~\cite{graf2022binary}。
+2022 年，异或过滤器的作者 Graf 和 Lemire 在之前的基础上提出了一种新的异或型过滤器，称为二进制引信过滤器(binary fuse filter)~\cite{graf2022binary}。
 相比异或过滤器，二进制引信过滤器将存储开销降低了$10\%$ 到 $15\%$。
 而做到这一点仅仅只需要修改哈希函数的映射方式。
 % 最初使用哈希函数映射位置的方式。
@@ -296,7 +296,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 \subsection{缎带过滤器}
 
 % 当二进制引信过滤器通过调整哈希函数映射方式来进一步压缩异或过滤器的存储开销，
-在二进制引信过滤器提出的几乎同一时间，还有另一个独立工作~\cite{dillinger2021ribbon}提出了比异或过滤器更优的异或型过滤器，名为缎带过滤器（ribbon filter）。
+在二进制引信过滤器提出的几乎同一时间，还有另一个独立工作~\cite{dillinger2021ribbon}提出了比异或过滤器更优的异或型过滤器，名为缎带过滤器(ribbon filter)。
 与异或过滤器及二进制引信过滤器不同，缎带过滤器通过求解方程组的形式来完成过滤器的构造。
 这里我们使用 $Z$ 来表示缎带过滤器构造的数组，假设其长度为 $m$，即此时的负载因子为 $\alpha = n / m$。
 我们将数组看作 $m$ 长度的向量，假设指纹长度为 $r$，那么 $Z$ 就可以看作是 $m\times r$ 的比特矩阵，即 $Z \in \{0,1\}^{m\times r}$。
@@ -308,7 +308,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 
 受到文献~\cite{dietzfelbinger2019Efficient}中所构造的快速高斯消元法的启发，缎带过滤器将哈希函数 $h$ 的计算分为两个部分。
 % 缎带过滤器参考了文献~\cite{dietzfelbinger2019Efficient}，
-首先需要设定一个小于 $m$ 的参数 $w$，$w$ 也被称为缎带宽度 （ribbon width）。
+首先需要设定一个小于 $m$ 的参数 $w$，$w$ 也被称为缎带宽度 (ribbon width)。
 对于给定的元素 $x$，$h(x)$ 的值取决于一个随机起始位置 $s(x)\in [m-w-1]$ 和一个长度为 $w$ 比特的随机系数向量 $c(x) \in \{0,1\}^w$。
 在给定这两个值之后，哈希函数 $h(x)$ 的形式为：
 \begin{equation}
@@ -346,7 +346,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 \end{equation}
 
 缎带过滤器的原文~\cite{dillinger2021ribbon}并没有给出理论上的存储开销分析，而是通过一系列实验验证缎带过滤器在存储上的优势。
-而实验中主要是将异或过滤器和缎带过滤器的两个扩展版本进行对比，这两个扩展版本分别是齐次缎带过滤器（homogeneous ribbon filter）和平衡缎带过滤器（balanced ribbon filter）。
+而实验中主要是将异或过滤器和缎带过滤器的两个扩展版本进行对比，这两个扩展版本分别是齐次缎带过滤器(homogeneous ribbon filter)和平衡缎带过滤器(balanced ribbon filter)。
 % 对比的是缎带过滤器的两个扩展版本
 % 文献~\cite{dillinger2021ribbon}中还对缎带过滤器提出了两个扩展版本，分别是。
 从实验结果来看，在相同的假正例率情况下，随着哈希函数中的参数 $w$ 越大，负载因子也随之增大。
@@ -355,7 +355,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 
 \section{不经意键值存储}
 
-不经意键值存储（obilivious key-value store，OKVS）的概念最早是由 Garimella 等人~\cite{garimella2021oblivious}于2021年提出的。
+不经意键值存储(Obilivious Key-Value Store，OKVS)的概念最早是由 Garimella 等人~\cite{garimella2021oblivious}于2021年提出的。
 正如\textbf{定义~\ref{def:okvs}}中所述，不经意键值存储包含 $\mathsf{Encode}$ 和 $\mathsf{Decode}$ 两个算法，它主要对键值型数据进行编码。
 % OKVS 针对的是键值型数据，
 对于编码结果 $D$，当其存储的键值对 $\{k, v\}$ 中 $v$ 为随机的数值，那么 $D$ 会隐藏关于 $k$ 的信息。
@@ -377,7 +377,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 
 % 另一种是采用异或型过滤器的构造思路。
 % 这里主要是介绍混淆布隆过滤器（Garbled Bloom filter）~\cite{dong2013when}。
-\textbf{混淆布隆过滤器（garbled Bloom filter）~\cite{dong2013when}：}
+\textbf{混淆布隆过滤器(garbled Bloom filter)~\cite{dong2013when}：}
 根据表~\ref{tab:construct}中的总结，混淆布隆过滤器严格意义上属于异或型过滤器的范畴，因为它存储的是插入元素本身（即 $f(x) = x$），不满足不经意的性质。
 但如果将它存储的 $f(x)$ 设置为随机值，并将它的输出由 $\mbox{True}/\mbox{False}$ 修改为 $f(x)$，那么它也可以看作是不经意键值存储。
 混淆布隆过滤器与布隆过滤器类似，都是使用 $k$ 个不同的哈希函数 $h_1, h_2, \dots, h_t$ 来计算映射位置。
@@ -392,13 +392,13 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 根据式~\ref{eq:BF_k}，我们可以推导出在 $k$ 取最优的情况下，$D$ 的长度 $m=1.44 kn$，对应的假正例率为 $1/2^k$。
 文献~\cite{garimella2021oblivious}指出混淆过滤器编码结果的大小为 $O(kn)$（即负载因子为 $O(1/k)$），这在隐私集合操作相关协议中会造成较大的通信开销。
 
-\textbf{混淆布谷鸟哈希表（garbled cuckoo table，GCT）~\cite{pinkas2020psi,garimella2021oblivious}：}
+\textbf{混淆布谷鸟哈希表(garbled cuckoo table，GCT)~\cite{pinkas2020psi,garimella2021oblivious}：}
 混淆布谷鸟哈希表实际上是 Bloomier 过滤器~\cite{charles2008bloomier} 的一种变体。
 在章节~\ref{sec:xor-based-filters}中我们介绍了 Bloomier 过滤器的最初构造方案~\cite{chazelle2004bloomier}。
 在 2008 年，Charles 等人~\cite{charles2008bloomier}对初始方案进行了改进，将构造过滤器的过程看作是给图的顶点赋值过程。
 以两个哈希函数 $h_1$ 和 $h_2$ 为例，他们思路是将每个元素 $x$ 对应的 $f(x)$ 看作一条边，$D[h_1(x)]$ 和 $D[h_2(x)]$ 看作边对应的两个顶点。
 % 且要求 。
-在构造过程中，首先确定整体图的形状，再通过剥离（peeling）操作对为顶点赋值。
+在构造过程中，首先确定整体图的形状，再通过剥离(peeling)操作对为顶点赋值。
 剥离操作依次移除图中度为 $1$ 的节点及它对应的边。
 如果剥离成功，则按照移除节点的逆序为各节点赋值，使其满足 $f(x) = D[h_1(x)] \oplus D[h_2(x)]$。
 如果图中剩余节点，意味图中出现了环，则需要重新选择哈希函数，直到能够剥离成功为止。
@@ -422,7 +422,7 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 这种方式编码开销甚至超过了基于多项式插值的方法，计算成本太大。
 文献~\cite{raghuraman2022blazing}通过使用矩阵变换的方式将 $M$ 转换成三角矩阵，从而加速高斯消元的过程。
 该方案的存储开销与 3H-GCT 基本相同，负载因子大约在 $0.78$ 到 $0.81$ 之间。
-最近的一篇工作~\cite{bienstock2023NearOptimal}采用随机带状矩阵（Random Band Matrix）进一步了降低存储开销，最优情况下，负载因子可以达到 $0.97$。
+最近的一篇工作~\cite{bienstock2023NearOptimal}采用随机带状矩阵(Random Band Matrix)进一步了降低存储开销，最优情况下，负载因子可以达到 $0.97$。
 % 将计算开销从 $O(n^3)$ 降为 $O(n\lambda)$。
 % 该方案的存储复杂度和编解码复杂度与3H-GCT基本相同，当构造失败概率为 $2^{-\lambda}$ 时，其编码复杂度为 $O(n\lambda)$，
 
@@ -446,13 +446,13 @@ Bloomier 过滤器~\cite{chazelle2004bloomier,charles2008bloomier} 是首个异�
 \end{table}
 
 表~\ref{tab:okvs_comparison}~对现有构造的存储复杂度和编解码复杂度进行了总结。
-从表中我们可以看出，目前综合性能最优的是基于随机带状矩阵构造的方案~\cite{bienstock2023NearOptimal}，即随机带状不经意键值存储（random band oblivious key-value store，RB-OKVS）。下面将具体介绍它的构造方式。
+从表中我们可以看出，目前综合性能最优的是基于随机带状矩阵构造的方案~\cite{bienstock2023NearOptimal}，即随机带状不经意键值存储(Random Band Oblivious Key-Value Store，RB-OKVS)。下面将具体介绍它的构造方式。
 % 最优的方案是采用
 % 总结了现有这些构造工作的存储复杂度和编解码复杂度。
 
 \subsection{随机带状不经意键值存储}
 
-随机带状不经意键值存储（random band oblivious key-value store，RB-OKVS）的构造是基于高斯消元法。
+随机带状不经意键值存储(Random Band Oblivious Key-Value Store，RB-OKVS)的构造是基于高斯消元法。
 正如前文所述，重点是如何构建矩阵 $M$ 使得方程 $M\cdot D = v$ 能快速求解。
 构建 $M$ 的核心在于映射函数 $r_{\mathcal{F}}$ 的设计。
 % RB-OKVS 的构造与前面介绍的缎带过滤器~\cite{dillinger2021ribbon}很类似。
@@ -511,7 +511,7 @@ RB-OKVS 的 $\mathsf{Decode}$ 过程与缎带过滤器类似，对于需要查�
 % 这一章介绍的数据结构与布隆过滤器最大的不同的是，每个位置上不再只存储 $0/1$ 比特，
 
 与OR型过滤器存储完整的指纹信息不同，XOR型过滤器是将指纹信息（或 $f(x)$）拆分成若干份存放在不同的位置。
-因此XOR型过滤器在构造之后便不能执行插入和删除操作，也就是说XOR型过滤器针对的是不可变集合（immutable sets）。
+因此XOR型过滤器在构造之后便不能执行插入和删除操作，也就是说XOR型过滤器针对的是不可变集合(immutable sets)。
 % 针对的是不可变集合
 对于所有的XOR型过滤器，它们在判断阶段的过程基本相同，即首先通过哈希函数计算出输入元素$x$的位置，再将这些位置上存储的值进行异或。
 如果异或结果为 $f(x)$，则返回 True。
@@ -531,7 +531,7 @@ Bloomier 过滤器提出使用贪心算法来确定每个元素对应的互不�
 尽管出发点不同，但是不经意键值存储和XOR型过滤器在设计思路上有相似的地方。
 单从构造来看，3H-GCT~\cite{garimella2021oblivious}可以对应到异或过滤器~\cite{graf2020xor}，RB-OKVS~\cite{bienstock2023NearOptimal}可以对应到缎带过滤器~\cite{dillinger2021ribbon}。
 究其根源，它们都受到之前相关工作的启发。
-比如异或过滤器~\cite{graf2020xor}和3H-GCT~\cite{garimella2021oblivious}都受到 Botelho 等人~\cite{botelho2007simple,botelho2013Practical}所提出的超图（hypergraph）构造的启发。
+比如异或过滤器~\cite{graf2020xor}和3H-GCT~\cite{garimella2021oblivious}都受到 Botelho 等人~\cite{botelho2007simple,botelho2013Practical}所提出的超图(hypergraph)构造的启发。
 % 文献~\cite{botelho2013Practical}
 缎带过滤器~\cite{dillinger2021ribbon}和RB-OKVS~\cite{bienstock2023NearOptimal}中的高斯消元法实际上源于同一篇快速消元法的工作~\cite{dietzfelbinger2019Efficient}。
 % 从这里我们也可以看出，都不是凭空出现的，
