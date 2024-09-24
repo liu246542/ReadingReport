@@ -34,7 +34,7 @@
 对称可搜索加密通过为加密数据构造安全索引实现隐私保护的关键词搜索。
 如图所示，对称可搜索加密中包含用户和服务器两个实体。
 在上传阶段，用户不仅需要上传加密文件，还需要上传对应的安全索引。
-在搜索阶段，用户根据需要搜索的关键词生成搜索令牌(tokens)，服务器使用搜索令牌检索得到加密的文件标识并返回给用户。
+在搜索阶段，用户根据需要搜索的关键词生成搜索 tokens，服务器使用搜索tokens检索得到加密的文件标识并返回给用户。
 
 % 从对称可搜索加密的搜索过程可以看出，
 我们假设服务器是半诚实的(semi-honest)，即服务器会诚实地执行协议，但它同时会对尝试分析输入输出信息来推断用户的隐私。
@@ -46,6 +46,8 @@
 % 同态加密或多方安全计算虽然能够提供较强的安全性，但同态加密方案需要
 而对称可搜索加密通过将搜索过程转移到安全索引上，在允许有限信息泄露的同时提供了高效的搜索。
 
+目前安全索引大多以倒排索引形式构建，也就是利用关键词信息去匹配文件标识的形式。
+这样能够保证搜索效率只与关键词对应的文件数有关，而与整个数据库的大小无关。
 对称可搜索加密允许泄露的信息也被称作模式信息(pattern information)，这些信息包括：
 \begin{itemize}
   \item 搜索模式(search pattern)，即两次搜索是否包含相同的搜索关键词。
@@ -61,16 +63,89 @@
 
 % 索引形式，倒排索引
 
-\subsection{隐藏中间结果模式的 SSE}
+\subsection{HXT}
 
-这一节我们介绍的是
+这一节我们介绍的是 HXT (Hidden Cross-Tags) 协议~\cite{lai2018result}。
+HXT 是一个针对连接多关键词查询的可搜索加密协议。
+上一节介绍的内容都是默认只考虑单关键词查询，如果要扩展到多关键词并不是一件容易的事。
+最直接的方式是执行多次单关键词的查询，但这样做，一来服务器与用户之间交互次数太多，通信开销太大；二来服务器可以知道每次查询的各种模式信息。
+针对这些问题，Cash等人提出了次线性(sublinear)的连接多关键词协议 OXT (Oblivious Cross-Tags)，即对于任意形如 $w_1\land w_2 \land \dots \land w_n$ 的连接多关键词查询，OXT 的查询复杂度只与第一个关键词对应的文件数量有关（次线性），与查询的关键词数量、数据库中文件数量无关。
+OXT 协议中包含两个索引，分别为 T-set 和 X-set，其中 T-set 与倒排索引类似，X-set 则是存储每个关键词 $w$ 与文件标识 $ind$ 配对的加密形式（称为 xtag）。
+% 元组，如 $(w, ind)$ 形式。
+% 通过构造两个索引
+搜索时，用户首先选取搜索关键词中对应预估文件数最低的关键词（称为 s-term）生成对应在 T-set 中的搜索token（称为 stag），并生成其他搜索关键词（称为 x-term）对应的搜索tokens（称为 xtokens）。
+以形如 $w_1 \land w_2 \land \dots \land w_n$ 的连接多关键词为例，其中假设 s-term 为 $w_1$。
+服务器在收到这些搜索tokens之后，首先根据 stag 从 T-set 中检索出 $w_1$ 对应的加密文件标识列表和盲化的关键词与文件标识配对列表。
+然后在上一步检索结果的基础上，使用 xtokens 还原出对应的 xtag，如果该 xtag 存在于 X-set 中，则返回对应的加密文件标识。
+% 再利用 xotkens
+% 与这些盲化的关键词与文件标识配对
+图~\ref{fig:oxt_example}~对OXT协议的搜索过程进行了描述。
+从整体上来看，OXT 协议的核心思路是先通过 T-set 确定出一个较小的文件范围，再使用 X-set 从这些文件中筛选出符合条件的结果。
+这样就避免了前面提到的交互次数太多和泄露每个单独关键词模式信息的问题，而且能够实现次线性的搜索复杂度。
+% 就能将搜索复杂度限制为 s-term 对应的文件数量。
+但是在 OXT 协议中，因为需要计算出每个 x-term 与 s-term 对应的文件标识配对的 xtag，而服务器可以判断每一个 xtag 是否存在于 XSet 中。
+以图~\ref{fig:oxt_example}~中的查询为例，服务器可以判断关键词 $w_2$ 与 $ind_1$ 配对的 xtag 存在于 X-set，而关键词 $w_3$ 与 $ind_1$ 配对的 xtag 不存在于 X-set。
+Lai 等人~\cite{lai2018result} 将这种信息定义为关键词对结果模式 (Keyword Pair Result Pattern, KPRP)。
+而 HXT 协议的提出就是为了解决 OXT 中 KPRP 信息泄露问题。
+% 为了防止 KPRP 的信息泄露，
+% OXT 协议的
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{figures/OXT_exp.pdf}
+  \caption{OXT 协议查询流程示例}
+  \label{fig:oxt_example}
+\end{figure}
 
+HXT 协议相比 OXT 协议主要修改的是 X-set 构造。
+为了隐藏 KPRP，就需要保证服务器不能通过计算 xtag 来完成在 X-set 中的筛选，也就是说 X-set 中不能直接保存 xtag。
+% 因此在 HXT 协议中，
+HXT 协议采用的方法是将 X-set 使用布隆过滤器构造成长度为 $m$ 的数组，再通过对称隐藏向量加密 (Symmetric Hidden Vector Encryption, SHVE) 进行加密，将加密结果作为 HXT 中的 X-set，如图~\ref{fig:xset_example}~所示。
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/xset_exp.pdf}
+  \caption{HXT 协议中 X-set 的构造}
+  \label{fig:xset_example}
+\end{figure}
 
-HXT~\cite{lai2018result}
+SHVE 是一种针对 $0/1$ 比特向量的加密算法，它主要包含以下四个算法：
+% 特点是当查询向量能够与加密的向量成功匹配时，SHVE
+\begin{itemize}
+  \item $\mathsf{SHVE}.\mathsf{Setup}(\lambda) \to msk$：通过输入安全参数 $\lambda$，输出主密钥 $msk$，并定义明文空间 $\mathcal{M}$。
+  \item $\mathsf{SHVE}.\mathsf{KeyGen}(msk, \mathbf{v} \in \{0,1,*\}^m \to \mathbf{s} $：通过输入长度为 $m$ 的预测向量 $\mathbf{v}$ 和主密钥，输出解密密钥 $\mathbf{s}$。
+  \item $\mathsf{SHVE}.\mathsf{Enc}(msk, \mu\in \mathcal{M}, \mathbf{x} \in \{0,1\}^m ) \to \mathbf{c}$：通过输入明文消息 $\mu$ 和长度为 $m$ 的索引向量 $\mathbf{x}$，输出密文 $\mathbf{c}$。
+  \item $\mathsf{SHVE}.\mathsf{Query}(\mathbf{s}, \mathbf{c}) \to \mu \mbox{ or} \perp$：通过输入预测向量 $\mathbf{v}$ 对应的解密密钥 $\mathbf{s}$ 和密文 $\mathbf{c}$，如果$P_{\mathbf{v}}^{\mathsf{SHVE}}(\mathbf{x}) = 1$，则返回明文消息 $\mu$；否则返回 $\perp$。
+\end{itemize}
+其中 $P_{\mathbf{v}}^{\mathsf{SHVE}}(\mathbf{x})=1$ 的含义是向量 $\mathbf{v}$ 和 $\mathbf{x}$ 除了通配符 $*$ 所在位置上，其他所有位置上的值都相等，即
+\begin{equation}
+  P_{\mathbf{v}}^{\mathsf{SHVE}}(\mathbf{x}) = \left\{
+  \begin{array}{ll}
+  1 & \forall 1\leq i \leq m \  (v_i = x_i \mbox{ or } v_i=*), \\
+  0 & \mbox{otherwise}. \\
+  \end{array}
+  \right.
+\end{equation}
+关于方案的具体构造可以参考文献~\cite{lai2018result}，这里就不详细介绍。
+% 这里我们不介绍
+我们主要介绍 HXT 是如何结合 SHVE 来隐藏 KPRP 的。
+% 在生成 stag 和 xtoken 部分，HXT 与 OXT 类似。
+搜索时，用户还是首先生成 stag 和 xtoken，这部分 HXT 与 OXT 相同。
+服务器还是通过 stag 检索 T-set，再利用 xtoken 计算出一系列 xtag。
+% 在服务器收到
+由于此时 X-set 中并没有直接存储 xtag，所以服务器并不能直接通过 xtag 完成判断。
+% 与布隆过滤器的
+对于服务器使用 stag 检索出的每个加密文件标识，后续的判断过程如下：
+\begin{itemize}
+  \item 服务器使用布隆过滤器的哈希函数，计算 xtag 对应的位置，并返回给用户。
+  \item 用户生成长度为 $m$ 且所有位置为 $*$ 的向量 $\mathbf{v}$，根据服务器返回的位置，将向量 $\mathbf{v}$ 上所有这些位置上的值设为 $1$。
+  \item 用户调用 $\mathsf{SHVE}.\mathsf{KeyGen}$ 将生成向量 $\mathbf{v}$ 对应的解密密钥并发送给服务器。
+  \item 服务器调用 $\mathsf{SHVE}.\mathsf{Query}$ 来判断 $\mathbf{v}$ 是否能与 X-set 匹配，如果返回为 True，则将对应的加密文件标识返回给用户。
+\end{itemize}
+
+% 在 HXT 协议中，X-set 不再存储
+% HXT~\cite{lai2018result}
 % 本节我们介绍的协议
 
-
-\subsection{隐藏数量模式的 SSE}
+\subsection{XorMM}
 
 \section{在隐私信息检索方面的应用}
 
