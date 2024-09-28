@@ -401,9 +401,39 @@ VOLE-PSI~\cite{rindal2021volepsi}是结合向量不经意线性评估 (Vector Ob
 协议参与的接收方得到向量 $\mathbf{A}$ 和向量 $\mathbf{C}$，而发送方得到向量 $\mathbf{B}$ 和 $\Delta$。
 
 VOLE-PSI 协议是建立在 VOLE 协议之上的。
-也就是说在执行 VOLE-PSI 协议之前，参与计算的接收方得到向量 $\mathbf{A}$ 和向量 $\mathbf{C}$，发送方得到向量 $\mathbf{B}$ 和 $\Delta$，且满足 $\mathbf{C} = \Delta \cdot \mathbf{A} + \mathbf{B}$。
-对于持有集合 $\{y_i\}_{i\in [n]}$ 的接收方，首先将集合中的每个元素看作键，
-
+也就是说在计算交集之前，参与计算的双方需要执行 VOLE 协议：接收方得到向量 $\mathbf{A}$ 和向量 $\mathbf{C}$，发送方得到向量 $\mathbf{B}$ 和 $\Delta$，且满足 $\mathbf{C} = \Delta \cdot \mathbf{A} + \mathbf{B}$。
+整体协议流程如图所示。
+对于持有集合 $Y=\{y_i\}_{i\in [n]}$ 的接收方，首先将集合中的每个元素看作键，并生成对应的值 $\{f(y_i)\}_{i\in [n]}$，并且满足：
+\begin{equation}
+  f(y_i) = \mathsf{H}(\mathsf{Decode}(\mathbf{C}, y_i)),
+\end{equation}
+其中 $\mathsf{H}$ 为随机谕言机 (random oracle)，$\mathsf{Decode}$ 为不经意键值存储中的解码算法。
+然后接收方可以将键值型数据 $\{(y_i, f(y_i))\}_{i\in [n]}$ 编码成不经意键值存储结构 $\mathbf{S}$。
+接收方将 $\mathbf{A} - \mathbf{S}$ 发送给发送方。
+发送方使用 $\mathbf{B}$ 和 $\Delta$ 计算 $\mathbf{B}'$，如下所示：
+% $\Delta \cdot \mathbf{S} + \mathbf{B}$，可以计算：
+\begin{equation}
+  \mathbf{B}' = \mathbf{B} + \Delta\cdot (\mathbf{A} - \mathbf{S})
+\end{equation}
+% \begin{align}
+%   \Delta \cdot \mathbf{S} + \mathbf{B} & = \Delta \cdot (\mathbf{A} - \mathbf{S}) + \mathbf{B} \\
+%   & = \Delta \cdot \mathbf{A} + \mathbf{B} - \Delta \cdot \mathbf{S} \\
+%   & = \mathbf{C} - \Delta \cdot \mathbf{S}.
+% \end{align}
+对于集合 $X=\{x_i\}_{i\in [n]}$ 中的每一个元素 $x_i$，发送方使用不经意键值存储的 $\mathsf{Decode}$ 算法进行解码，计算 $f'(x_i)$，如下所示：
+\begin{align}
+  f'(x_i) = \Delta \cdot \mathsf{Decode}(\mathbf{S}, x_i) + \mathsf{Decode}(\mathbf{B'}, x_i).
+\end{align}
+发送方使用与接收方相同的 $\mathsf{H}$ 得到新的集合 $\{\mathsf{H}(f'(x_i))\}_{i\in [n]}$，并将该集合返回给接收方。
+根据 VOLE 中的线性关系以及\textbf{定义~\ref{def:okvs}}中 $\mathsf{Decode}$ 算法的性质，当集合 $X$ 中存在与 $Y$ 有交集的元素时，即 $x_i \in Y$ 时，有：
+\begin{align}
+  f'(x_i) & = \Delta\cdot \mathsf{Decode}(\mathbf{S}, x_i) + \mathsf{Decode}(\mathbf{B}', x_i) \\
+  & = \Delta \cdot f(x_i) + \mathsf{Decode}(\mathbf{B}, x_i) + \mathsf{Decode}(\Delta\cdot(\mathbf{A}-\mathbf{S}), x_i) \\
+  & = \Delta\cdot f(x_i) + \mathsf{Decode}(\mathbf{B}, x_i) + \Delta\cdot\mathsf{Decode}(\mathbf{A}, x_i) - \Delta \cdot f(x_i) \\
+  & = \mathsf{Decode}(\mathbf{B}, x_i) + \Delta \cdot \mathsf{Decode}(\mathbf{A}, x_i) \\
+  & = \mathsf{Decode}(\mathbf{C}, x_i).
+\end{align}
+接收方只需要根据 $\mathbf{C}$ 可以直接计算 $\{\mathsf{Decode}(\mathbf{C}, y_i)\}_{i\in [n]}$，再与发送方返回的结果进行比对便能得到 $X\cap Y$ 的交集结果。
 
 % 其中一个核心设计是基于向量不经意线性评估的不经意伪随机函数 (Oblivious Pseudorandom Function, OPRF)，简称为 VOLE-PIR。
 % 这里需要分别说明向量不经意线性评估和不经意伪随机函数的含义。
@@ -416,11 +446,82 @@ VOLE-PSI 协议是建立在 VOLE 协议之上的。
 
 % 基于向量不经意线性评估的不经意伪随机函数的构造建立在 VOLE 协议之上，
 
-% VOLE-PSI~\cite{rindal2021volepsi}
-
-\newpage
 \subsection{SKE-PSU}
 
-SKE-PSU~\cite{zhang2023linear}
+SKE-PSU~\cite{zhang2023linear}是结合不经意传输 (Oblivious Transfer，OT) 和多点反向隐私成员测试 (Multi-Query Reverse Private Membership Test, mq-RPMT) 设计的隐私集合求并方案。
+其中的 mq-RPMT 构造中使用到了不经意键值存储结构。
+在介绍具体方案之前，我们首先简单介绍不经意传输和多点反向隐私成员测试的含义。
+
+不经意传输是一种常见的安全多方计算协议。
+最基础的不经意传输协议是 1-out-of-2 OT，其基本功能如图所示。
+其中发送方有两个消息，分别为 $m_1$ 和 $m_2$，而接收方想获取其中的一个消息 $m_b, b\in\{1,2\}$。
+通过执行 1-out-of-2 OT 协议之后，接收方获得了消息 $m_b$ 但并不知道另一个消息的信息，而发送方不知道接收方想要获取的是哪个消息。
+由 1-out-of-2 OT 可以扩展到 1-out-of-n OT，即接收方可以获取到发送方 $n$ 个消息中的一个，但发送方并不能判断接收方获取的具体是哪个消息。
+
+多点反向隐私成员测试是一个两方协议，它的作用是判断发送方提供的元素 $x_i$ 是否属于接收方的集合 $Y$，并让接收方获得判断结果，而发送方不获得任何信息。
+在执行该协议之后，接收方便能知道哪些序号的元素是不在集合 $Y$ 中的，之后就可以通过不经意传输协议获取这些元素，得到并集结果。
+% 之后便能通过
+早期的反向隐私成员测试协议~\cite{kolesnikov2019scalable}一次只能判断一个元素，也被称为单点反向隐私成员测试。
+SKE-PSU~\cite{zhang2023linear}中借助不经意键值存储结构和 VODE (Vector Oblivious Decryption-then-Matching) 协议实现了多点反向隐私成员测试协议，也就是可以一次判断多个元素。
+这里的 VODE 也是一种作用于两方的协议，假设 $\mathcal{E} = (\mathsf{Setup}, \mathsf{KeyGen}, \mathsf{Enc}, \mathsf{Dec})$ 为一个抗选择明文攻击安全的对称加密机制，VODE 的功能描述如下：
+\begin{itemize}
+  \item 接收方持有明文 $s$ 以及由 $\mathsf{KeyGen}$ 生成的密钥 $k$。
+  \item 发送方持有集合 $\{s_1^*, s_2^*, \dots, s_n^*\}$，集合中的每个元素都来自 $\mathcal{E}$ 加密算法的密文空间。
+  \item 对于 $i\in [n]$，计算 $s_i' = \mathsf{Dec}(k, s_i^*)$。如果 $s_i' = s$，令 $b_i = 1$，否则 $b_i = 0$。
+  \item 接收方得到判断结果 $\{b_i\}_{i\in [n]}$。
+\end{itemize}
+% 关于 VODE 的构造
+在有了 VODE 协议的基础上，我们可以构建多点反向隐私成员测试，其流程如图所示。
+我们依然假设发送方持有集合 $X = \{x_i\}_{i\in [n]}$，接收方持有集合 $Y = \{y_i\}_{i\in [n]}$，协议流程描述如下：
+\begin{itemize}
+  \item 接收方随机生成标识字符串 $s$，使用 $\mathsf{KeyGen}$ 生成密钥 $k$，并使用加密机制 $\mathcal{E}$ 将 $s$ 加密 $n$ 次，得到 $\{s_1, s_2, \dots, s_n\}$。
+  \item 接收方构造键值型数据 $\{(y_1, s_1), (y_2, s_2), \dots, (y_n, s_n)\}$，并使用不经意键值存储的 $\mathsf{Encode}$ 编码成 $D$，将 $D$ 发送给发送方。
+  \item 发送方收到 $D$ 之后，便可以用自己的集合 $X$ 作为输入，使用不经意键值存储的 $\mathsf{Encode}$ 算法编码成 $\{s_1^*, s_2^*, \dots, s_n^*\}$。
+  \item 接收方和发送方执行 VODE 协议，发送方输入 $\{s_1^*, s_2^*, \dots, s_n^*\}$，接收方输入 $(k, s)$。因为 VODE 的作用是判断密文 $s_i^*$ 与明文 $s$ 能否匹配，所以最终接收方获取到一系列判断结果 $\{b_1, b_2, \dots, b_n\}$。
+\end{itemize}
+在得到判断结果的输出后，接收方便能通过不经意传输协议，从发送方获取到不属于集合 $Y$ 中的元素，最终得到 $X\cup Y$ 的结果。
+得益于不经意键值存储的性质，当 $x_i \in Y$ 时，接收方计算出的 $s_i^*$ 就是 $s$ 的密文。
+而不经意的性质确保接收方无法知道 $x_i$ 是否属于 $Y$，避免接收方获取到额外的信息。
+
+% SKE-PSU~\cite{zhang2023linear}中的多查询反向隐私成员测试使用了向量不经意
+% 相比隐私集合求交协议，隐私集合求并要求的是接收方只能获取到并集信息，而不能获取到交集内容。
+% 因此就需要
+% 隐私计算
+% 反向隐私成员测试 (Reverse Private Membership Test, RPMT)
+% SKE-PSU~\cite{zhang2023linear}
 
 \section{总结}
+
+这一节我们主要介绍了布隆过滤器及其衍生的数据结构在对称可搜索加密、隐私信息检索和隐私集合运算上的应用。
+这些数据结构之所以能够广泛应用在各种不同的隐私保护协议之中，主要有以下几个方面的原因：
+\begin{itemize}
+  \item 较低的空间开销：在设计隐私保护计算协议尤其涉及到双方交互的协议时，影响性能的因素之一便是通信开销。
+  而过滤器或者不经意的键值存储本身就是一种压缩率非常高的结构，引入这些结构会大大降低协议的通信开销。比如在隐私集合运算过程中，交互双方并不会直接发送（加密后的）集合信息，而是采取将集合表示为过滤器或不经意键值存储结构后再发送。
+  \item 灵活的编码形式：布隆过滤器能够将集合中的元素编码成 $0/1$ 比特串的形式，从而可以直接应用到输入为比特向量的加密机制中（比如 HXT 中的 SHVE）；异或型过滤器和不经意键值存储能够将键值型数据编码进数据结构，因此只要是任意键值型数据（比如 XorMM 中的索引）都可以直接进行编码。
+  \item 成员测试的能力：过滤器设计的初衷就是实现成员测试。
+  正因为其拥有成员测试的能力，因此可以用于查询协议中做条件判断。
+  比如在 HXT 中判断多个搜索关键词是否与文件标识匹配，ChalametPIR 中判断那些数据符合用户的请求。
+  而对于异或型过滤器和不经意键值存储来说，它们还具有不经意的性质，也就是对任意输入都可以生成一个输出。
+  比如在 XorMM 协议中服务器对 $\ell$ 个查询需要返回 $\ell$ 个输出，在 VOLE-PSI 协议中，发送方对集合中每个元素 $x_i$，都有对应的输出 $f'(x_i)$，在 SKE-PSU 协议中，发送方对集合中每个元素 $x_i$，都有对应的输出 $s_i^*$。这样不经意性保证让一方不获取任何消息的同时，为另一方提供成员测试的功能。
+  % 实现更加安全的方案（比如 HXT 隐藏 KPRP）
+\end{itemize}
+
+
+% 本文的前两章主要介绍了布隆过滤器及其衍生的新型数据结构的构造和性能，希望能让大家对这些数据结构有一个初步认识。
+% 最后一章结合三个常见的隐私保护协议介绍了这些数据结构是如何应用的，希望能让大家了解到现有的一些设计方法，为设计隐私保护协议提供新思路。
+
+这一节的主要目的是希望通过介绍这些数据结构在隐私保护协议上的应用，让大家了解到现有的一些设计方法，为设计隐私保护协议提供新的思路。
+% 目前这些数据结构的应用
+从我们列出的相关工作也可以看出，布隆过滤器和布谷鸟过滤器在隐私保护协议中已经应用得很成熟，而异或型过滤器和不经意键值存储的应用近几年才刚刚开始。
+我们可以多关注后两种数据存储结构，或许能为我们构建方案提供更好的帮助。
+% 尝试在不同隐私保护协议中
+
+% 本文的目的是希望能够通过对这些数据结构进行总结，让大家对过滤器及其相关新型数据的构造、性能以及如何使用有一个初步的认识，为设计隐私保护相关协议提供新思路。
+% 有了理论上的了解只是一个开始，我们应该知道如何去应用。
+% 希望通过本文在最后列举的几个例子能够给各位
+% 本文介绍的这些新型数据结构还具有
+
+% 具有较低的空间开销、
+% 编码能力
+% 判断能力
+% 线性可加能力
