@@ -32,7 +32,13 @@
 
 为了解决文件隐私和可搜索之间的矛盾，对称可搜索加密(Searchable Symmetric Encryption，SSE)~\cite{song2000practical,curtmola2006searchable}的概念被提出。
 对称可搜索加密通过为加密数据构造安全索引实现隐私保护的关键词搜索。
-如图所示，对称可搜索加密中包含用户和服务器两个实体。
+如图~\ref{fig:sse_protocol}~所示，对称可搜索加密中包含用户和服务器两个实体。
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/sse_pro.pdf}
+  \caption{对称可搜索加密系统模型}
+  \label{fig:sse_protocol}
+\end{figure}
 在上传阶段，用户不仅需要上传加密文件，还需要上传对应的安全索引。
 在搜索阶段，用户根据需要搜索的关键词生成搜索 tokens，服务器使用搜索tokens检索得到加密的文件标识并返回给用户。
 
@@ -211,6 +217,15 @@ Bienstock等人~\cite{bienstock2023NearOptimal}将XorMM中的异或过滤器替�
 \subsection{背景介绍}
 
 隐私信息检索 (Private Information Retrieval, PIR) 是一种用于隐藏用户查询内容的隐私保护密码协议。
+如图~\ref{fig:pir_protocol}~所示，隐私信息检索协议中存在用户和服务器两个实体。
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/pir_pro.pdf}
+  \caption{隐私信息检索系统模型}
+  \label{fig:pir_protocol}
+\end{figure}
+对于用户只需要输入检索条件，并能得到相应的检索结果。
+而检索的数据则由服务器提供。
 与可搜索加密相比，隐私信息检索针对的场景和考虑的问题都有所区别。
 在场景上，可搜索加密针对的是外包数据存储场景，也就是云服务器中存储的是用户的数据，典型的是各种云盘服务；而隐私信息检索中所有的数据是由服务器自身掌握的，也就是数据本身并不是属于查询用户的，比如像查询火车票服务。
 由于数据的所有方不同，二者考虑的问题也就相差甚远。
