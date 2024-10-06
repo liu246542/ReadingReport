@@ -75,7 +75,7 @@
 % 高效性主要体现在两个方面：
 \begin{itemize}
     \item \textbf{较低的存储开销：}布隆过滤器的大小与元素本身的大小无关，只与集合中元素的数量有关。比如，当给定 $m$ 与 $n$ 的比值为 $5$ 时，根据公式~\eqref{eq:BF_k} 可以计算出需要的哈希函数数量为 $3$ 或 $4$。因为布隆过滤器中每个位置上存储的都是 $0/1$ 比特，所以过滤器存储大小也就是 $m$ 比特。
-    \item \textbf{较高的判断效率：} 因为只需要检查 $k$ 个位置上的比特是否全为 $1$，因此检查一个元素的时间复杂度为 $O(k)$，与集合中元素的数量无关。相比于树形结构的查询复杂度$O(\log(n))$或列表结构的查询复杂度$O(n)$都要更低，尤其当元素数量较多的情况下优势更为明显。
+    \item \textbf{较高的判断效率：} 因为只需要检查 $k$ 个位置上的比特是否全为 $1$，所以检查一个元素的时间复杂度为 $O(k)$，与集合中元素的数量无关。相比于树形结构的查询复杂度$O(\log(n))$或列表结构的查询复杂度$O(n)$都要更低，尤其当元素数量较多的情况下优势更为明显。
     % 而对于具体的布隆过滤器实例来说，$k$ 的值在初始化阶段就是常数，因此插入和查询的复杂度都为 $O(1)$。
     \item \textbf{不会漏判：} 尽管布隆过滤器在查询时会存在误判的情况，但是它不会出现漏判（假负例）的情况。也就是只要是布隆过滤器判断元素 $x$ 不属于 $S$，那么该论断一定是正确的。
 \end{itemize}
@@ -145,24 +145,24 @@ XOR型的典型代表是异或过滤器(xor filter)~\cite{fan2014cuckoo}，这�
 \begin{definition}[不经意键值存储]\label{def:okvs}
     令 $\mathcal{K}$ 和 $\mathcal{V}$ 分别表示键和值的集合。不经意键值存储包含两个算法：
     \begin{itemize}
-        \item[$\circ$] $\mathsf{Encode}(\{(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)\})$：输入一组键值对 $\{(x_i, y_i)\}_{i\in [n]}\subseteq \mathcal{K} \times \mathcal{V}$，输出编码结果 $D$ 或以可忽略的概率输出错误指示符 $\perp$。
+        \item[$\circ$] $\mathsf{Encode}(\{(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)\})$：输入一组键值对 $\{(x_i, y_i)\}_{i\in [1,n]}\subseteq \mathcal{K} \times \mathcal{V}$，输出编码结果 $D$ 或以可忽略的概率输出错误指示符 $\perp$。
         \item[$\circ$] $\mathsf{Decode}(D, k)$：输入编码结果 $D$ 和键 $k\in \mathcal{K}$，输出值 $v\in \mathcal{V}$。
     \end{itemize}
 
     \textbf{正确性：} 对于任意键值对集合 $A\subseteq \mathcal{K}\times \mathcal{V}$，如果 $\mathsf{Encode}(A) = D$ 且 $D\neq \perp$，那么对于任意的 $(k, v) \in A$，都有 $\mathsf{Decode}(D, k) = v$。
 
-    \textbf{不经意性：} 随机给定两个不同的集合 $\mathcal{K}_0 = \{x_1^0, x_2^0, \dots, x_n^0\}$ 和 $\mathcal{K}_1 = \{x_1^1, x_2^1, \dots, x_n^1\}$，再随机构造集合 $\{y_i\}_{i\in [n]}\gets \mathcal{V}$，若 $D \neq \perp$，则分布 $\{D | y_i \gets \mathcal{V}, i\in [n], \mathsf{Encode}(\{(x_1^0, y_1), (x_2^0, y_2), \dots, (x_n^0, y_n)\})\}$ 与分布 $\{D | y_i \gets \mathcal{V}, i\in [n], \mathsf{Encode}(\{(x_1^1, y_1), (x_2^1, y_2), \dots, (x_n^1, y_n)\})\}$ 计算不可区分。
+    \textbf{不经意性：} 随机给定两个不同的集合 $\mathcal{K}_0 = \{x_1^0, x_2^0, \dots, x_n^0\}$ 和 $\mathcal{K}_1 = \{x_1^1, x_2^1, \dots, x_n^1\}$，再随机构造集合 $\{y_i\}_{i\in [1,n]}\gets \mathcal{V}$，若 $D \neq \perp$，则分布 $\{D | y_i \gets \mathcal{V}, i\in [1,n], \mathsf{Encode}(\{(x_1^0, y_1), (x_2^0, y_2), \dots, (x_n^0, y_n)\})\}$ 与分布 $\{D | y_i \gets \mathcal{V}, i\in [1,n], \mathsf{Encode}(\{(x_1^1, y_1), (x_2^1, y_2), \dots, (x_n^1, y_n)\})\}$ 计算不可区分。
 
     对于部分安全需求较高的协议，不经意键值存储还需要满足随机性，即：
 
-    \textbf{随机性：} 对于任意的集合 $A = \{(x_i, y_i)\}_{i\in [n]} \subseteq \mathcal{K} \times \mathcal{V}$ 和 $x' \notin \{x_1, x_2, \dots, x_n\}$，如果 $\mathsf{Encode}(A) = D$ 且 $D\neq \perp$，则 $\mathsf{Decode}(D, x')$ 的输出与随机选择的 $v\gets \mathcal{V}$ 统计不可区分。
+    \textbf{随机性：} 对于任意的集合 $A = \{(x_i, y_i)\}_{i\in [1,n]} \subseteq \mathcal{K} \times \mathcal{V}$ 和 $x' \notin \{x_1, x_2, \dots, x_n\}$，如果 $\mathsf{Encode}(A) = D$ 且 $D\neq \perp$，则 $\mathsf{Decode}(D, x')$ 的输出与随机选择的 $v\gets \mathcal{V}$ 统计不可区分。
 \end{definition}
 
 % 衡量指标：
-我们主要考虑这些数据结构在存储和计算两个方面的性能。
+我们主要关注这些数据结构在存储和计算方面的性能。
 % 评估以上数据结构的性能主要考虑存储和计算两个方面，
 在存储开销方面，一是要衡量过滤器本身的长度，即 $m$ 的数值，我们一般使用负载因子(load factor) $\alpha = n/m$ 作为评估指标，即 $\alpha$ 越接近 $1$，说明空间利用率越高；二是需要衡量均摊空间开销(amortized space cost)，即平均每个元素上在过滤器中所占用的存储空间。
-在计算开销方面，我们主要分析构建/判断（或编码/解码）过程的复杂度。
+在计算开销方面，我们主要关注构建/判断（或编码/解码）过程的复杂度。
 % 基于以上讨论内容，
 表~\ref{tab:construct}~对本文中所介绍的过滤器以及不经意键值存储结构进行了总结。
 % 接下来我们将对布隆过滤器衍生的数据结构进行详细介绍。
