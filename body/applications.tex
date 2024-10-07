@@ -132,7 +132,7 @@ HXT 协议采用的方法是将 X-set 使用布隆过滤器构造成长度为 $m
 \end{equation}
 关于方案的具体构造可以参考文献~\cite{lai2018result}，这里就不详细介绍。
 % 这里我们不介绍
-这里主要介绍 HXT 是如何结合 SHVE 来隐藏 KPRP 的。
+下面主要介绍 HXT 是如何结合 SHVE 来隐藏 KPRP 的。
 构造时，用户使用图~\ref{fig:xset_example}~中的方式构造 X-set，在使用 SHVE 加密时，明文消息 $\mu$ 设置为 True。
 % 在生成 stag 和 xtoken 部分，HXT 与 OXT 类似。
 搜索时，用户还是首先生成 stag 和 xtoken，这部分 HXT 与 OXT 相同。
