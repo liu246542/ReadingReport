@@ -5,7 +5,7 @@
 \section{布隆过滤器}
 
 在构造网络安全相关协议时，我们经常会使用到许多不同类型的数据结构。
-其中，布隆过滤器(Bloom filter)~\cite{bloom1970space}作为一种经典的概率型数据结构，在IP地址过滤、识别恶意邮件、DoS 和 DDos 攻击检测等场景有着广泛的应用~\cite{geravand2013bloom}。
+其中，布隆过滤器(Bloom filter)~\cite{bloom1970space}作为一种经典的概率型数据结构，在IP地址过滤、识别恶意邮件、DoS 和 DDos 攻击检测等场景有着广泛的应用~\cite{geravand2013bloom,patgiri2023bloom}。
 % 可搜索加密、隐私信息检索、隐私集合运算等安全协议中有着广泛的应用~\cite{geravand2013bloom}。
 % 布隆过滤器的定义是一种空间效率
 布隆过滤器是由 $k$ 个哈希函数构造的数组结构，它的作用是快速判断元素是否属于某一集合(membership query)，具有空间效率高、判断速度快的特点。

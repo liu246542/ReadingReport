@@ -212,6 +212,21 @@ HXT 协议采用的方法是将 X-set 使用布隆过滤器构造成长度为 $m
 % 最近的工作~\cite{}
 Bienstock等人~\cite{bienstock2023NearOptimal}将XorMM中的异或过滤器替换为 RB-OKVS 设计了 RB-MM 协议，从而将存储开销从 $1.23n$ 降低为 $1.03n$。
 
+在了解了 HXT 和 XorMM 两个协议之后，会让我们思考这样一个问题：HXT 协议虽然能够隐藏 KPRP，但并不能隐藏数量模式；而 XorMM 虽然能够隐藏数量模式，但不支持连接多关键词查询。
+因此我在这些工作基础上，提出了一个新的协议 VHXT (Volume-Hiding Cross-Tags)，即在 HXT 的基础上，进一步隐藏数量模式。
+其中主要做的改进还是在 X-set 上。
+受到 XorMM 和 RB-MM 的启发，VHXT 协议中将 X-set 改造成由 xtag 到加密文件标识的映射形式（即键值型数据），这样一来就可以使用 RB-OKVS 存储 X-set 的信息。
+为了隐藏 T-set 的数量模式，VHXT 进一步采用了非负差分隐私机制对 T-set 进行填充。
+\begin{figure}[ht]
+  \centering
+  \subfloat[用户端搜索时间对比]{\includegraphics[width=0.4\textwidth]{figures/search_time_client_nk.pdf}}~~
+  \subfloat[用户端通信开销对比]{\includegraphics[width=0.4\textwidth]{figures/tokens_size_nk.pdf}}
+  \caption{针对不同数量的搜索关键词，不同方案开销对比}
+  \label{fig:vhxt_client}
+\end{figure}
+图~\ref{fig:vhxt_client}~给出了VHXT与OXT以及HXT在不同数量的搜索关键词情况下，用户端搜索时间与通信开销对比。
+得益于 RB-OKVS 的高效压缩性能，在不填充额外信息的情况下，我们提出的 VHXT 相比其他相关方案能取得更优的效率。
+
 \section{在隐私信息检索协议中的应用}
 
 \subsection{背景介绍}
@@ -432,7 +447,7 @@ ChalametPIR 协议的构造思路如图~\ref{fig:pir_exp}~所示，其中指纹�
 协议的执行流程如图~\ref{fig:pso_okvs}~所示。
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/pso_okvs.pdf}
+  \includegraphics[width=0.8\textwidth]{figures/pso_okvs.pdf}
   \caption{基于不经意键值存储构造的隐私集合运算协议流程}
   \label{fig:pso_okvs}
 \end{figure}
@@ -460,7 +475,7 @@ VOLE-PSI 协议是建立在 VOLE 协议之上的。
 整体协议流程如图~\ref{fig:psi_okvs}~所示。
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/psi_okvs.pdf}
+  \includegraphics[width=0.8\textwidth]{figures/psi_okvs.pdf}
   \caption{VOLE-PSI 协议流程}
   \label{fig:psi_okvs}
 \end{figure}
@@ -541,7 +556,7 @@ SKE-PSU~\cite{zhang2023linear}中借助不经意键值存储结构和 VODE (Vect
 在有了 VODE 协议的基础上，我们可以构建多点反向隐私成员测试，其流程如图~\ref{fig:psu_okvs}~所示。
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/psu_okvs.pdf}
+  \includegraphics[width=0.8\textwidth]{figures/psu_okvs.pdf}
   \caption{SKE-PSU 协议流程}
   \label{fig:psu_okvs}
 \end{figure}
